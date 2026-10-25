@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/server/admin-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
@@ -5,36 +6,26 @@ import { supabase } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Admin password HARDCODED to match the other admin routes (env var ignored).
-const ADMIN_PASSWORD = "dumptruck";
 
-function authorized(request: NextRequest): boolean {
-  return request.headers.get("x-admin-password")?.trim() === ADMIN_PASSWORD;
-}
 
 // GET — return every table and every assignment.
-// In demo mode (no Supabase) or on any DB error, returns empty arrays plus
-// demo:true so the client persists the whole seating layout in localStorage
 // and the feature still works in local development.
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdmin(request);
+  if (auth.response) return auth.response;
 
   if (!supabase) {
-    return NextResponse.json({ tables: [], assignments: [], demo: true });
+    return NextResponse.json({ error: "Unable to load seating." }, { status: 503 });
   }
 
   try {
     const [tablesRes, assignmentsRes] = await Promise.all([
-      supabase.from("seating_tables").select("*").order("sort_order"),
-      supabase.from("seating_assignments").select("*"),
+      supabase!.from("seating_tables").select("*").order("sort_order"),
+      supabase!.from("seating_assignments").select("*"),
     ]);
 
     if (tablesRes.error || assignmentsRes.error) {
-      // Tables not created yet (migration 005 not run) — fall back to demo so
-      // the client keeps the layout in localStorage instead of crashing.
-      return NextResponse.json({ tables: [], assignments: [], demo: true });
+      return NextResponse.json({ error: "Unable to load seating." }, { status: 503 });
     }
 
     return NextResponse.json({
@@ -42,7 +33,7 @@ export async function GET(request: NextRequest) {
       assignments: assignmentsRes.data,
     });
   } catch {
-    return NextResponse.json({ tables: [], assignments: [], demo: true });
+    return NextResponse.json({ error: "Unable to load seating." }, { status: 503 });
   }
 }
 
@@ -59,9 +50,8 @@ type Body =
   | { action: "unassign"; guest_id: string };
 
 export async function POST(request: NextRequest) {
-  if (!authorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdmin(request, true);
+  if (auth.response) return auth.response;
 
   let body: Body;
   try {
@@ -69,36 +59,33 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-
-  // Demo mode: nothing to persist server-side; the client keeps the whole
-  // layout in localStorage. Echo success so the UI behaves identically.
   if (!supabase) {
-    return NextResponse.json({ ok: true, demo: true });
+    return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
   }
 
   try {
     switch (body.action) {
       case "upsertTable": {
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
           .from("seating_tables")
           .upsert(body.table as never)
           .select()
           .single();
-        if (error) return NextResponse.json({ ok: true, demo: true });
+        if (error) return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
         return NextResponse.json({ ok: true, table: data });
       }
 
       case "deleteTable": {
-        const { error } = await supabase
+        const { error } = await supabase!
           .from("seating_tables")
           .delete()
           .eq("id", body.id);
-        if (error) return NextResponse.json({ ok: true, demo: true });
+        if (error) return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
         return NextResponse.json({ ok: true });
       }
 
       case "assign": {
-        const { error } = await supabase.from("seating_assignments").upsert(
+        const { error } = await supabase!.from("seating_assignments").upsert(
           {
             guest_id: body.guest_id,
             table_id: body.table_id,
@@ -107,16 +94,16 @@ export async function POST(request: NextRequest) {
           },
           { onConflict: "guest_id" }
         );
-        if (error) return NextResponse.json({ ok: true, demo: true });
+        if (error) return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
         return NextResponse.json({ ok: true });
       }
 
       case "unassign": {
-        const { error } = await supabase
+        const { error } = await supabase!
           .from("seating_assignments")
           .delete()
           .eq("guest_id", body.guest_id);
-        if (error) return NextResponse.json({ ok: true, demo: true });
+        if (error) return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
         return NextResponse.json({ ok: true });
       }
 
@@ -124,7 +111,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }
   } catch {
-    // Supabase unreachable — report success; the client keeps localStorage.
-    return NextResponse.json({ ok: true, demo: true });
+    return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
   }
 }
