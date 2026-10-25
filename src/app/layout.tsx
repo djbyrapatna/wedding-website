@@ -1,3 +1,4 @@
+import { siteMetadata } from "@/config/metadata";
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Montserrat } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
@@ -28,20 +29,7 @@ export const viewport: Viewport = {
   themeColor: "#FAF7F2",
 };
 
-export const metadata: Metadata = {
-  title: {
-    default: "Lyndsey & Andrew — August 2026",
-    template: "%s | Lyndsey & Andrew Wedding",
-  },
-  description:
-    "Join us in celebrating the wedding of Lyndsey and Andrew. August 15, 2026 in Austin, Texas.",
-  openGraph: {
-    title: "Lyndsey & Andrew — We're Getting Married!",
-    description:
-      "Join us in celebrating our wedding. August 15, 2026 in Austin, Texas.",
-    type: "website",
-  },
-};
+export const metadata: Metadata = siteMetadata;
 
 export default function RootLayout({
   children,

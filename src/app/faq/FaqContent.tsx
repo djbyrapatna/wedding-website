@@ -1,64 +1,21 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import FadeIn from "@/components/animations/FadeIn";
 import Accordion from "@/components/ui/Accordion";
 import FluffHero from "@/components/layout/FluffHero";
 
-const FAQ_ITEMS = [
-  {
-    question: "What is the dress code?",
-    answer:
-      "We're asking guests to dress semi-formal and church-appropriate. For men, a jacket and tie. For ladies, a long skirt or dress is great. The church asks that attire avoid low backs, midriffs, high slits, plunging necklines, strapless tops, or sideless/cutout designs — a shawl or wrap to cover during the ceremony works perfectly if your reception look doesn't quite meet those guidelines. Austin in August is warm, so lightweight fabrics are your friend. Please save white and ivory for the bride.",
-  },
-  {
-    question: "Will the ceremony and reception be at the same location?",
-    answer:
-      "No — the ceremony is at St. John Neumann Catholic Church at 2:00 PM, and the reception is at Hotel Ella with cocktail hour starting at 5:00 PM. The venues are about 15 minutes apart. Please plan accordingly: Hotel Ella will not be open to guests before 5:00 PM, so don't head there straight from the church.",
-  },
-  {
-    question: "What time should I arrive?",
-    answer:
-      "The ceremony begins at 2:00 PM. The church doors open at 1:30 PM — the earliest guests can be seated — so please plan to arrive between 1:30 and 1:45 PM.",
-  },
-  {
-    question: "Is there parking available?",
-    answer:
-      "The church has plenty of parking for the ceremony. Hotel Ella offers complimentary valet for the reception. Given Hotel Ella's downtown location, we recommend taking an Uber or Lyft to skip the valet line.",
-  },
-  {
-    question: "Can I bring a plus one?",
-    answer:
-      "Please refer to your invitation for details on your party size. We've done our best to include everyone, but due to venue capacity, we can only accommodate the guests listed on your invitation.",
-  },
-  {
-    question: "What's the weather like in Austin in August?",
-    answer:
-      "Hot! August in Austin typically sees temperatures in the mid-90s to low 100s°F (35–40°C). The ceremony is indoors and the reception venue is fully air-conditioned, but we recommend light, breathable fabrics. Stay hydrated and don't forget sunscreen if you're exploring the city.",
-  },
-  {
-    question: "Are kids welcome?",
-    answer:
-      "Children listed on your invitation are absolutely welcome to celebrate with us — we'd love to have them there. If kids aren't named on your invitation, we kindly ask that you arrange childcare so the adults in your household can enjoy a night out. We've thoughtfully crafted our guest list and appreciate you respecting it.",
-  },
-  {
-    question: "Can I take photos during the ceremony?",
-    answer:
-      "We kindly ask for an unplugged ceremony — please keep phones and cameras tucked away while we exchange vows. Our professional photographer and videographer will capture every moment, and we'll share the photos with everyone afterward. Feel free to snap away at the reception!",
-  },
-  {
-    question: "What if I have dietary restrictions?",
-    answer:
-      "We want everyone to enjoy the meal. When you RSVP, there will be a space to note any dietary restrictions or allergies. Our caterer is experienced in accommodating a variety of needs, including vegetarian, vegan, gluten-free, and common allergen-free options.",
-  },
-];
+import { FAQ_ITEMS } from "@/config/faq";
 
 export default function FaqContent() {
   return (
     <>
       <FluffHero
-        eyebrow="Got questions?"
-        title="Frequently Asked Questions"
-        subtitle="Everything you need to know about our big day."
+        eyebrow={PAGE_COPY.app_faq_FaqContent.got_questions}
+        title={PAGE_COPY.app_faq_FaqContent.frequently_asked_questions}
+        subtitle={PAGE_COPY.app_faq_FaqContent.everything_you_need_to_know_about_our_big_day}
       />
 
       {/* Accordion */}
@@ -74,14 +31,9 @@ export default function FaqContent() {
       <section className="section-padding bg-cream">
         <div className="mx-auto max-w-2xl px-6 text-center">
           <FadeIn>
-            <h2 className="font-serif text-3xl text-charcoal">
-              More Details Coming Soon
-            </h2>
+            <h2 className="font-serif text-3xl text-charcoal">{PAGE_COPY.app_faq_FaqContent.more_details_coming_soon}</h2>
             <div className="divider-gold" />
-            <p className="mt-4 font-sans text-sm leading-relaxed text-charcoal-light">
-              We&apos;ll keep adding to this page as we get closer to the big
-              day. Be sure to check back for the latest information.
-            </p>
+            <p className="mt-4 font-sans text-sm leading-relaxed text-charcoal-light">{PAGE_COPY.app_faq_FaqContent.we_ll_keep_adding_to_this_page_as_we_get_closer_to_the_}</p>
           </FadeIn>
         </div>
       </section>

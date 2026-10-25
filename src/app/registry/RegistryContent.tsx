@@ -1,53 +1,15 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  Gift,
-  Sofa,
-  Palmtree,
-  ExternalLink,
-  ArrowRight,
-  type LucideIcon,
-} from "lucide-react";
+import { ExternalLink, ArrowRight } from "lucide-react";
 import FadeIn from "@/components/animations/FadeIn";
 import FluffHero from "@/components/layout/FluffHero";
 
-type Registry = {
-  name: string;
-  description?: string;
-  icon: LucideIcon;
-  url: string | null;
-  color: "sage" | "gold";
-  comingSoon?: boolean;
-  /** Internal link (same site) — uses client-side routing, no new tab. */
-  internal?: boolean;
-};
-
-const REGISTRIES: Registry[] = [
-  {
-    name: "Crate & Barrel",
-    description: "Home and kitchen.",
-    icon: Sofa,
-    url: "https://www.crateandbarrel.com/gift-registry/lyndsey-sager-and-andrew-hicks/r7546104",
-    color: "gold",
-  },
-  {
-    name: "Amazon",
-    description: "Everyday essentials.",
-    icon: Gift,
-    url: "https://www.amazon.com/wedding/guest-view/3EIOIRQPQLMQI",
-    color: "sage",
-  },
-  {
-    name: "Honeymoon Fund",
-    description: "Help send us off on our honeymoon.",
-    icon: Palmtree,
-    url: "/registry/honeymoon",
-    color: "sage",
-    internal: true,
-  },
-];
+import { REGISTRIES } from "@/config/registry";
 
 const iconColorMap = {
   sage: "bg-sage/10 text-sage",
@@ -57,7 +19,7 @@ const iconColorMap = {
 export default function RegistryContent() {
   return (
     <>
-      <FluffHero eyebrow="Gifts & registry" title="Registry" />
+      <FluffHero eyebrow={PAGE_COPY.app_registry_RegistryContent.gifts_registry} title={PAGE_COPY.app_registry_RegistryContent.registry} />
 
       {/* Registry Cards */}
       <section className="bg-ivory pb-20 pt-16 sm:pb-28 sm:pt-20">
@@ -90,9 +52,7 @@ export default function RegistryContent() {
                   )}
 
                   {isComingSoon ? (
-                    <span className="mt-auto pt-6 inline-flex items-center gap-1.5 font-sans text-xs font-medium uppercase tracking-[0.2em] text-warm-gray">
-                      Opening Soon
-                    </span>
+                    <span className="mt-auto pt-6 inline-flex items-center gap-1.5 font-sans text-xs font-medium uppercase tracking-[0.2em] text-warm-gray">{PAGE_COPY.app_registry_RegistryContent.opening_soon}</span>
                   ) : (
                     <span className="mt-auto pt-6 inline-flex items-center gap-1.5 font-sans text-xs font-medium uppercase tracking-[0.15em] text-sage transition-colors group-hover:text-gold">
                       {registry.internal ? "View the Fund" : "View Registry"}

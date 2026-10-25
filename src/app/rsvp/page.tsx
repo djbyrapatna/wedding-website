@@ -1,12 +1,10 @@
+import { pageMetadata } from "@/config/metadata";
 import type { Metadata } from "next";
 import RsvpContent from "./RsvpContent";
 import RsvpClosed from "./RsvpClosed";
 import { getRsvpOpen } from "@/lib/settings";
 
-export const metadata: Metadata = {
-  title: "RSVP",
-  description: "RSVP to Lyndsey and Andrew's wedding celebration.",
-};
+export const metadata: Metadata = pageMetadata('RSVP', 'RSVP to the couple wedding celebration.');
 
 // Read fresh on every request so the admin's open/close toggle takes effect
 // immediately (no static caching of the RSVP page).

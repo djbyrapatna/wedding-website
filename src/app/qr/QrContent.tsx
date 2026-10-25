@@ -1,5 +1,8 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import { useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Download } from "lucide-react";
@@ -41,9 +44,9 @@ export default function QrContent() {
   return (
     <>
       <FluffHero
-        eyebrow="For your invitations"
-        title="QR Code"
-        subtitle="Scan to visit our wedding website"
+        eyebrow={PAGE_COPY.app_qr_QrContent.for_your_invitations}
+        title={PAGE_COPY.app_qr_QrContent.qr_code}
+        subtitle={PAGE_COPY.app_qr_QrContent.scan_to_visit_our_wedding_website}
       />
       <div className="flex flex-col items-center justify-center bg-ivory px-6 pb-20 pt-16 sm:pt-20">
       <FadeIn delay={0.2}>
@@ -67,17 +70,11 @@ export default function QrContent() {
 
       <FadeIn delay={0.35}>
         <button onClick={handleDownload} className="btn-primary mt-8">
-          <Download className="mr-2 h-4 w-4" />
-          Download PNG
-        </button>
+          <Download className="mr-2 h-4 w-4" />{PAGE_COPY.app_qr_QrContent.download_png}</button>
       </FadeIn>
 
       <FadeIn delay={0.45}>
-        <p className="mt-8 max-w-sm text-center font-sans text-xs leading-relaxed text-warm-gray">
-          Print this QR code on your save-the-dates, invitations, or table
-          cards. Guests can scan it with their phone camera to visit the site
-          instantly.
-        </p>
+        <p className="mt-8 max-w-sm text-center font-sans text-xs leading-relaxed text-warm-gray">{PAGE_COPY.app_qr_QrContent.print_this_qr_code_on_your_save_the_dates_invitations_o}</p>
       </FadeIn>
       </div>
     </>

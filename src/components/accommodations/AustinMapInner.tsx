@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
-import L, { type LatLngBoundsExpression, type LatLngTuple } from "leaflet";
+import L, { type LatLngTuple } from "leaflet";
 
 const C = {
   cream: "#F8F9FA",
@@ -12,50 +12,7 @@ const C = {
   warmGray: "#7A7068",
 };
 
-type Pin = {
-  id: number;
-  name: string;
-  lat: number;
-  lng: number;
-  color: string;
-  query: string;
-};
-
-const PINS: Pin[] = [
-  {
-    id: 1,
-    name: "Austin-Bergstrom Airport (AUS)",
-    lat: 30.1945,
-    lng: -97.6699,
-    color: C.sage,
-    query: "Austin-Bergstrom International Airport",
-  },
-  {
-    id: 2,
-    name: "St. John Neumann Catholic Church",
-    lat: 30.2855,
-    lng: -97.8267,
-    color: C.gold,
-    query: "St John Neumann Catholic Church Austin TX",
-  },
-  {
-    id: 3,
-    name: "Hotel Ella",
-    lat: 30.2904,
-    lng: -97.7426,
-    color: C.charcoal,
-    query: "Hotel Ella Austin TX",
-  },
-];
-
-const HOTEL = PINS[2];
-const CHURCH = PINS[1];
-const AIRPORT = PINS[0];
-
-const BOUNDS: LatLngBoundsExpression = [
-  [30.18, -97.85],
-  [30.30, -97.65],
-];
+import { PINS, HOTEL, CHURCH, AIRPORT, BOUNDS } from "@/config/locations";
 
 function makeIcon(id: number, color: string) {
   return L.divIcon({

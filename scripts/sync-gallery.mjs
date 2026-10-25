@@ -4,7 +4,7 @@
 // ============================================
 // Reads every image in public/images/photos/gallery/, pulls the EXIF
 // DateTimeOriginal (or CreateDate fallback) out of it, and writes a
-// date-sorted manifest to src/lib/gallery.generated.json.
+// date-sorted manifest to src/config/generated/gallery.json.
 //
 // Filenames matching FILENAME_TO_MILESTONE are tagged with the
 // corresponding milestone id and have their date overridden with the
@@ -26,7 +26,7 @@ import { readdir, writeFile, stat, readFile } from "node:fs/promises";
 import { join, extname } from "node:path";
 
 const GALLERY_DIR = "public/images/photos/gallery";
-const OUTPUT_FILE = "src/lib/gallery.generated.json";
+const OUTPUT_FILE = "src/config/generated/gallery.json";
 // HEIC excluded — most browsers can't render it, so any .HEIC in the
 // gallery would show as a broken image in the timeline.
 const VALID_EXT = new Set([".jpg", ".jpeg", ".png", ".webp"]);
@@ -34,56 +34,7 @@ const VALID_EXT = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 // Map a renamed filename to a milestone id from src/components/story/milestones.ts.
 // Anything not in this map shows in the timeline as a between-milestone "fluff"
 // photo with no label.
-const FILENAME_TO_MILESTONE = {
-  "first date.jpg": "first-date",
-  "shreveport .jpg": "first-shreveport",
-  "boyfriend girlfriend.jpg": "official",
-  "andrew grad.jpg": "andrew-graduation",
-  "tough mudder.jpg": "tough-mudder",
-  "taylor swift.JPG": "eras",
-  "first AFC game.jpg": "austin-fc",
-  "lyndsey moved to atx.jpg": "lyndsey-austin",
-  "TAMU vs ND cstat.jpg": "nd-am-2024",
-  "nyc.jpg": "nyc",
-  "xmas in kc.jpg": "christmas-kc",
-  "ring_render.jpg": "ring-shopping",
-  "notre dame vs tamu2.jpg": "nd-am-2025",
-  "proposal.jpg": "engaged",
-  "our wedding day.jpg": "wedding",
-};
-
-// Manual date overrides for photos that have no EXIF metadata (e.g.
-// screenshots, exports). Filename → "YYYY-MM-DD". Wins over EXIF, so
-// don't add a file here unless you really mean to override.
-const MANUAL_DATES = {
-  "IMG_1897.jpg": "2022-05-15",
-  "IMG_2909.jpg": "2022-10-15",
-  "IMG_0073.jpg": "2025-06-15",
-};
-
-// Canonical milestone dates used to override a labeled photo's date when
-// its EXIF is missing or unreliable. Keep in sync with milestones.ts.
-const MILESTONE_DATES = {
-  met: "2021-07-05",
-  "first-date": "2021-08-15",
-  "shreveport-move": "2021-08-20",
-  "first-shreveport": "2021-10-15",
-  official: "2022-01-07",
-  "andrew-graduation": "2022-05-21",
-  "lyndsey-graduation": "2022-05-22",
-  "tough-mudder": "2022-10-15",
-  hometown: "2022-11-15",
-  eras: "2023-03-31",
-  "austin-fc": "2023-07-15",
-  "lyndsey-austin": "2024-04-15",
-  "nd-am-2024": "2024-08-31",
-  nyc: "2024-11-15",
-  "christmas-kc": "2024-12-22",
-  "ring-shopping": "2025-09-05",
-  "nd-am-2025": "2025-09-13",
-  engaged: "2025-12-14",
-  wedding: "2026-08-15",
-};
+import { FILENAME_TO_MILESTONE, MANUAL_DATES, MILESTONE_DATES } from "../src/config/gallery-sync.mjs";
 
 async function main() {
   let entries;

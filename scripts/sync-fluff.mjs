@@ -3,7 +3,7 @@
 // Fluff Hero Sync
 // ============================================
 // Lists every image in public/images/photos/fluff/ and writes a JSON
-// manifest at src/lib/fluff.generated.json. The FluffHero component
+// manifest at src/config/generated/fluff.json. The FluffHero component
 // imports that manifest and picks a random image per page load.
 // ============================================
 
@@ -11,7 +11,7 @@ import { readdir, writeFile } from "node:fs/promises";
 import { extname } from "node:path";
 
 const FLUFF_DIR = "public/images/photos/fluff";
-const OUTPUT_FILE = "src/lib/fluff.generated.json";
+const OUTPUT_FILE = "src/config/generated/fluff.json";
 const VALID_EXT = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
 async function main() {

@@ -1,3 +1,4 @@
+import { WEDDING } from "@/config/wedding";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getRsvpOpen } from "@/lib/settings";
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "RSVPs are now closed. Please reach out to Lyndsey & Andrew directly if you need to update your response.",
+          `RSVPs are now closed. Please reach out to ${WEDDING.coupleName} directly if you need to update your response.`,
       },
       { status: 403 }
     );

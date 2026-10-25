@@ -1,5 +1,10 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
+import { WEDDING } from "@/config/wedding";
+
 import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -28,8 +33,8 @@ export default function StoryHero() {
       {/* Parallax Background */}
       <motion.div className="absolute inset-0" style={{ y: imageY }}>
         <Image
-          src="/images/photos/engagement/proposal-4.jpg"
-          alt="Lyndsey and Andrew — the proposal"
+          src={PAGE_COPY.components_story_StoryHero.images_photos_engagement_proposal_4_jpg}
+          alt={`${WEDDING.coupleName} — the proposal`}
           fill
           className="object-cover"
           priority
@@ -59,9 +64,7 @@ export default function StoryHero() {
           transition={{ duration: 0.8, delay: 0.2 }}
           style={{ color: "#FFFFFF", textShadow, fontWeight: 700 }}
           className="font-sans text-[10px] uppercase tracking-[0.3em] sm:text-xs sm:tracking-[0.35em]"
-        >
-          How it all began
-        </motion.p>
+        >{PAGE_COPY.components_story_StoryHero.how_it_all_began}</motion.p>
 
         <motion.h1
           initial={{ opacity: 0, y: 25 }}
@@ -74,9 +77,7 @@ export default function StoryHero() {
             textShadow,
             WebkitTextStroke: "0.5px #FFFFFF",
           }}
-        >
-          Our Story
-        </motion.h1>
+        >{PAGE_COPY.components_story_StoryHero.our_story}</motion.h1>
 
         <motion.div
           initial={{ scaleX: 0 }}
@@ -91,9 +92,7 @@ export default function StoryHero() {
           transition={{ duration: 0.8, delay: 1.3 }}
           style={{ color: "#FFFFFF", textShadow, fontWeight: 600 }}
           className="mt-4 max-w-md font-serif text-base italic sm:mt-6 sm:text-lg"
-        >
-          Every love story is beautiful, but ours is our favorite.
-        </motion.p>
+        >{PAGE_COPY.components_story_StoryHero.every_love_story_is_beautiful_but_ours_is_our_favorite}</motion.p>
       </motion.div>
     </section>
   );

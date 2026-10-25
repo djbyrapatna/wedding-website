@@ -1,48 +1,13 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import Image from "next/image";
 import FadeIn from "@/components/animations/FadeIn";
 import FluffHero from "@/components/layout/FluffHero";
 
-interface Person {
-  name: string;
-  role: string;
-  /** how this person is connected to the couple (e.g. "College friend") */
-  relation?: string;
-  photo: string; // filename in /public/images/photos/wedding-party/
-}
-
-const BRIDESMAIDS: Person[] = [
-  { name: "Chrislyn Herring", role: "Maid of Honor", relation: "Best friend", photo: "chrislyn.png" },
-  { name: "Kayla Sager", role: "Matron of Honor", relation: "Sister-in-law of the bride", photo: "kayla.png" },
-  { name: "Rebecca Wright", role: "Bridesmaid", relation: "Childhood friend", photo: "rebecca.jpg" },
-  { name: "Bailey Cannon", role: "Bridesmaid", relation: "High school friend", photo: "bailey.jpg" },
-  { name: "Gabby Kendrick", role: "Bridesmaid", relation: "College friend", photo: "gabby.png" },
-  { name: "Nicole Hicks", role: "Bridesmaid", relation: "Sister of the groom", photo: "nicole.jpg" },
-  { name: "Abby Sager", role: "Bridesmaid", relation: "Sister-in-law of the bride", photo: "abby.png" },
-];
-
-const GROOMSMEN: Person[] = [
-  { name: "Matthew Hicks", role: "Best Man", relation: "Brother of the groom", photo: "matthew.jpg" },
-  { name: "Connor Sloan", role: "Groomsman", relation: "College friend", photo: "connor-sloan.png" },
-  { name: "Patrick Hollander", role: "Groomsman", relation: "College friend", photo: "pat.png" },
-  { name: "Jonathan Sager", role: "Groomsman", relation: "Brother of the bride", photo: "jonathan.jpg" },
-  { name: "Connor Sager", role: "Groomsman", relation: "Brother of the bride", photo: "connor-sager.jpg" },
-  { name: "Joe Calamore", role: "Groomsman", relation: "High school friend", photo: "joe.png" },
-  { name: "Zach Agcaoili", role: "Groomsman", relation: "High school friend", photo: "zach.png" },
-];
-
-const RING_BEARERS: Person[] = [
-  { name: "Nolan Marchand", role: "Ring Bearer", photo: "nolan.jpg" },
-  { name: "Lincoln Keif", role: "Ring Bearer", photo: "lincoln.png" },
-];
-
-const FLOWER_GIRLS: Person[] = [
-  { name: "Kenzie Steiner", role: "Flower Girl", photo: "kenzie.jpg" },
-  { name: "Charley Keif", role: "Flower Girl", photo: "charley.jpg" },
-];
-
-const PHOTO_BASE = "/images/photos/wedding-party";
+import { type Person, BRIDESMAIDS, GROOMSMEN, RING_BEARERS, FLOWER_GIRLS, PHOTO_BASE } from "@/config/wedding-party";
 
 function PersonCard({
   person,
@@ -103,9 +68,9 @@ export default function WeddingPartyContent() {
   return (
     <>
       <FluffHero
-        eyebrow="The people by our side"
-        title="Meet the Wedding Party"
-        subtitle="The incredible friends and family who will be standing with us on our big day."
+        eyebrow={PAGE_COPY.app_wedding_party_WeddingPartyContent.the_people_by_our_side}
+        title={PAGE_COPY.app_wedding_party_WeddingPartyContent.meet_the_wedding_party}
+        subtitle={PAGE_COPY.app_wedding_party_WeddingPartyContent.the_incredible_friends_and_family_who_will_be_standing_}
       />
 
       {/* Bridesmaids */}
@@ -113,9 +78,7 @@ export default function WeddingPartyContent() {
         <div className="mx-auto max-w-6xl px-6">
           <FadeIn>
             <div className="text-center">
-              <h2 className="font-serif text-3xl text-charcoal sm:text-4xl">
-                Bridesmaids
-              </h2>
+              <h2 className="font-serif text-3xl text-charcoal sm:text-4xl">{PAGE_COPY.app_wedding_party_WeddingPartyContent.bridesmaids}</h2>
               <div className="divider-gold" />
             </div>
           </FadeIn>
@@ -138,9 +101,7 @@ export default function WeddingPartyContent() {
         <div className="mx-auto max-w-6xl px-6">
           <FadeIn>
             <div className="text-center">
-              <h2 className="font-serif text-3xl text-charcoal sm:text-4xl">
-                Groomsmen
-              </h2>
+              <h2 className="font-serif text-3xl text-charcoal sm:text-4xl">{PAGE_COPY.app_wedding_party_WeddingPartyContent.groomsmen}</h2>
               <div className="divider-gold" />
             </div>
           </FadeIn>
@@ -163,9 +124,7 @@ export default function WeddingPartyContent() {
         <div className="mx-auto max-w-4xl px-6">
           <FadeIn>
             <div className="text-center">
-              <h2 className="font-serif text-3xl text-charcoal sm:text-4xl">
-                Ring Bearers &amp; Flower Girls
-              </h2>
+              <h2 className="font-serif text-3xl text-charcoal sm:text-4xl">{PAGE_COPY.app_wedding_party_WeddingPartyContent.ring_bearers_flower_girls}</h2>
               <div className="divider-gold" />
             </div>
           </FadeIn>
