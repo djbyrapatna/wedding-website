@@ -9,6 +9,7 @@ The original wedding content is intentionally preserved until you replace it.
   stable after RSVPs have been collected.
 - `page-copy.ts`: page headings, messages, photo paths, and accessible descriptions,
   grouped by the component that displays them. Layout and animations stay in components.
+- `rsvp.ts`, `travel.ts`, and `seating.ts`: RSVP confirmation copy, travel dates/search links, and guest-side colors.
 - `metadata.ts`: page and social-preview metadata derived from wedding details.
 - `faq.ts`, `hotels.ts`, `locations.ts`, `recommendations.ts`, `registry.ts`, and
   `wedding-party.ts`: structured page data. Update map coordinates and travel

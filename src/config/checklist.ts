@@ -5,7 +5,7 @@
 //
 // These are STATIC definitions (text + grouping + tags). Only the *state* of
 // each item (checked / notes) is persisted — in Supabase when configured, or in
-// localStorage in demo mode. IDs are stable; do not renumber existing items
+// the authenticated admin API. IDs are stable; do not renumber existing items
 // (saved check/note state is keyed by id).
 // ============================================
 

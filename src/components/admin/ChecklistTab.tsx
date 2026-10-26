@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdmin, adminFetch } from "./AdminAuthGate";
+import { useAdmin } from "./AdminAuthGate";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -23,35 +23,10 @@ import {
   type ChecklistSection,
 } from "@/lib/checklist-data";
 
-type ItemState = { checked: boolean; notes: string };
-type StateMap = Record<string, ItemState>;
-
-const LOCAL_KEY = "wedding-checklist-state";
-
-function loadLocal(): StateMap {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(LOCAL_KEY);
-    return raw ? (JSON.parse(raw) as StateMap) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveLocal(state: StateMap) {
-  try {
-    window.localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
-  } catch {
-    /* ignore quota / private-mode errors */
-  }
-}
+import { useChecklistData, type ItemState } from "@/hooks/useChecklistData";
 
 export default function ChecklistTab() {
-  const { canEdit } = useAdmin();
-  const [state, setState] = useState<StateMap>({});
-  const [loadError, setLoadError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [demo, setDemo] = useState(false);
+  const { state, loading, loadError, itemState, persist } = useChecklistData();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   // Filtering
@@ -59,70 +34,12 @@ export default function ChecklistTab() {
   const [query, setQuery] = useState("");
   const [showTags, setShowTags] = useState(false);
 
-  // Load saved state once on mount.
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await adminFetch("/api/admin/checklist");
-        const json = await res.json();
-        if (!active) return;
-
-        if (json.demo) {
-          setDemo(true);
-          setState(loadLocal());
-        } else {
-          setState(json.items ?? {});
-        }
-      } catch (e) {
-        if (active) setLoadError(e instanceof Error ? e.message : "Unable to load checklist.");
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const itemState = useCallback(
-    (id: string): ItemState => state[id] ?? { checked: false, notes: "" },
-    [state]
-  );
-
-  // Persist a single item: optimistic local update, then sync.
-  const persist = useCallback(
-    (id: string, next: ItemState) => {
-      if (!canEdit) return;
-      setState((prev) => {
-        const updated = { ...prev, [id]: next };
-        if (demo) saveLocal(updated);
-        return updated;
-      });
-
-      if (!demo) {
-        adminFetch("/api/admin/checklist", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            item_id: id,
-            checked: next.checked,
-            notes: next.notes,
-          }),
-        }).catch((e) => setLoadError(e instanceof Error ? e.message : "Unable to save checklist."));
-      }
-    },
-    [demo, canEdit]
-  );
-
   const toggle = useCallback(
     (id: string) => {
       const current = itemState(id);
       persist(id, { ...current, checked: !current.checked });
     },
-    [itemState, persist]
+    [itemState, persist],
   );
 
   const setNote = useCallback(
@@ -130,7 +47,7 @@ export default function ChecklistTab() {
       const current = itemState(id);
       persist(id, { ...current, notes });
     },
-    [itemState, persist]
+    [itemState, persist],
   );
 
   const toggleTag = useCallback((tag: string) => {
@@ -149,7 +66,7 @@ export default function ChecklistTab() {
 
   const completedCount = useMemo(
     () => Object.values(state).filter((s) => s.checked).length,
-    [state]
+    [state],
   );
   const pct =
     CHECKLIST_TOTAL > 0
@@ -171,7 +88,7 @@ export default function ChecklistTab() {
         item.tags.some((t) => t.toLowerCase().includes(q));
       return tagOk && textOk;
     },
-    [activeTags, q]
+    [activeTags, q],
   );
 
   const filteredSections = useMemo(
@@ -180,12 +97,12 @@ export default function ChecklistTab() {
         section,
         items: filtering ? section.items.filter(matches) : section.items,
       })).filter((s) => s.items.length > 0),
-    [filtering, matches]
+    [filtering, matches],
   );
 
   const matchCount = useMemo(
     () => filteredSections.reduce((n, s) => n + s.items.length, 0),
-    [filteredSections]
+    [filteredSections],
   );
 
   if (loadError) return <p role="alert">{loadError}</p>;
@@ -216,7 +133,6 @@ export default function ChecklistTab() {
 
         <p className="mt-1 font-sans text-xs text-warm-gray sm:text-sm">
           From your Mockingbird Lane planning checklist.
-          {demo && " Saved on this device until the database is connected."}
         </p>
 
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-linen">
@@ -484,7 +400,8 @@ function ChecklistRow({
     <li className="px-4 py-2.5 transition-colors hover:bg-ivory/40 sm:px-5">
       <div className="flex items-start gap-2.5">
         <button
-          disabled={!canEdit} onClick={onToggle}
+          disabled={!canEdit}
+          onClick={onToggle}
           role="checkbox"
           aria-checked={state.checked}
           aria-label={state.checked ? "Mark as not done" : "Mark as done"}
@@ -546,7 +463,8 @@ function ChecklistRow({
 
           {/* Note editor */}
           {noteOpen && (
-            <textarea readOnly={!canEdit}
+            <textarea
+              readOnly={!canEdit}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onBlur={() => {

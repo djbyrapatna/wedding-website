@@ -1,20 +1,20 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wedding website
 
-## Getting Started
+Next.js frontend and API routes with Supabase storage, individual dashboard
+accounts, and RSVP lookup by either guest name or household invitation code.
 
-First, run the development server:
+- [Personalization](docs/PERSONALIZATION.md): public content, photos, metadata.
+- [Dashboard accounts](docs/ADMIN_ACCOUNTS.md): owners, read-only viewers, auth setup.
+- [Invitation access](docs/INVITATION_ACCESS.md): codes, sessions, RSVP validation.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Install with `npm ci`; copy `.env.local.example` to `.env.local` and configure it.
+Run `npm run dev` for local development. Run `npm run build`, `npm test`,
+`npm run lint`, and `npm run test:access` for validation (HTTP tests require a build).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A new database needs SQL migrations **001–008 in order**. On an existing database,
+apply only missing migrations. Migration 003 replaces an old demo schema and
+must never be rerun on a live guest list. Account emails and invitation delivery
+require your own Supabase Auth setup; see the guides above.
 
 ## RSVP Guest List Import
 
@@ -28,7 +28,7 @@ already submitted**.
 
 - **Imported tables** — `households` and `guests` are rebuilt from the sheet on
   every run (upserted on `household_id` / `guest_id`).
-- **Response table** — `rsvps` is written *only* by the website, keyed on the
+- **Response table** — `rsvps` is written _only_ by the website, keyed on the
   stable `guest_id`. The importer never touches it, so responses always survive.
 - Guests that disappear from the sheet are **soft-removed** (`removed = true`),
   never hard-deleted, so an existing RSVP can never be orphaned.
@@ -37,7 +37,7 @@ already submitted**.
 
 1. Run the SQL migrations in the Supabase SQL editor, in order:
    `supabase/migrations/001_initial_schema.sql`,
-   `002_checklist.sql`, then `003_rsvp_guest_list.sql`.
+   `002_checklist.sql`, `003_rsvp_guest_list.sql`, then migrations 004–008 for the remaining features.
 2. Create `.env.local` (see `.env.local.example`) with:
    ```
    NEXT_PUBLIC_SUPABASE_URL=...
@@ -68,23 +68,3 @@ blank `side` on a confirmed guest, malformed zip). A dry run needs no database.
   `rsvps.plus_one_name`, not back in the sheet).
 
 Run `npm test` to exercise the importer logic (`node --test`).
-
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
