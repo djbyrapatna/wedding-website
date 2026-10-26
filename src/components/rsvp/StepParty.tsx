@@ -1,7 +1,7 @@
 "use client";
 
 import { Users } from "lucide-react";
-import type { GuestRsvpData } from "./RsvpForm";
+import type { GuestRsvpData } from "@/lib/rsvp/types";
 
 interface StepPartyProps {
   label: string;

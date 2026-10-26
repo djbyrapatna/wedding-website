@@ -1,14 +1,8 @@
 "use client";
 
-import { useAdmin, adminFetch } from "./AdminAuthGate";
+import { useAdmin } from "./AdminAuthGate";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -16,24 +10,18 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-  useDraggable,
-  useDroppable,
   type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   Loader2,
   Plus,
-  Trash2,
-  Move,
   Users,
   Armchair,
   Sparkles,
   Download,
   Utensils,
-  Search,
   X,
-  Pencil,
   Maximize2,
   Minimize2,
   ZoomIn,
@@ -41,7 +29,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
-import type { Guest, Household, Rsvp, SeatingTable } from "@/lib/database.types";
+import type { Guest, Household, Rsvp } from "@/lib/database.types";
 import { ADULT_ENTREES, KIDS_MEALS, ALTERNATIVE_MEAL } from "@/lib/constants";
 
 // ------------------------------------------------------------------
@@ -49,53 +37,26 @@ import { ADULT_ENTREES, KIDS_MEALS, ALTERNATIVE_MEAL } from "@/lib/constants";
 // ------------------------------------------------------------------
 
 const MEAL_LABELS: Record<string, string> = Object.fromEntries(
-  [...ADULT_ENTREES, ...KIDS_MEALS, ALTERNATIVE_MEAL].map((m) => [m.value, m.label])
+  [...ADULT_ENTREES, ...KIDS_MEALS, ALTERNATIVE_MEAL].map((m) => [
+    m.value,
+    m.label,
+  ]),
 );
 
-const LOCAL_KEY = "wedding-seating-state";
-
 // One dot color per side of the family, so a table's mix is readable at a glance.
-const SIDE_COLOR: Record<string, string> = {
-  Sager: "#7F9DB5", // dusty blue
-  Hicks: "#D4B85C", // calm yellow
-  Mutual: "#C8D8E4", // soft blue
-};
-function sideColor(side: string | null): string {
-  return (side && SIDE_COLOR[side]) || "#B9B2A8"; // warm gray fallback
-}
-
-type Status = "accepted" | "declined" | "pending";
-type FilterMode = "accepted" | "maybe"; // "maybe" = accepted + not-yet-responded
-
-type GuestView = {
-  id: string;
-  name: string;
-  side: string | null;
-  status: Status;
-  meal: string | null; // label
-  dietary: boolean;
-  householdId: number;
-  householdLabel: string;
-  typeTag: string; // child/toddler/infant/plus-one
-};
-
-type PersistedTable = Pick<
-  SeatingTable,
-  "id" | "name" | "pos_x" | "pos_y" | "capacity" | "sort_order"
->;
+import type { GuestView, FilterMode, Status } from "@/lib/admin/seating";
+import {
+  RosterRail,
+  ChipBody,
+  TableNode,
+  HeadTableNode,
+  Fixture,
+  MiniStat,
+} from "./SeatingNodes";
+import { useSeatingData, type PersistedTable } from "@/hooks/useSeatingData";
 
 function clamp(n: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, n));
-}
-
-function loadLocal(): { tables: PersistedTable[]; assignments: Record<string, string> } | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(LOCAL_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
 }
 
 // ------------------------------------------------------------------
@@ -112,11 +73,15 @@ export default function SeatingTab({
   rsvps: Rsvp[];
 }) {
   const { canEdit } = useAdmin();
-  const [tables, setTables] = useState<PersistedTable[]>([]);
-  const [assignments, setAssignments] = useState<Record<string, string>>({});
-  const [loadError, setLoadError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [demo, setDemo] = useState(false);
+  const {
+    tables,
+    setTables,
+    assignments,
+    setAssignments,
+    loading,
+    loadError,
+    post,
+  } = useSeatingData();
 
   const [filter, setFilter] = useState<FilterMode>("maybe");
   const [showDeclined, setShowDeclined] = useState(false);
@@ -130,24 +95,21 @@ export default function SeatingTab({
   const [rosterOpen, setRosterOpen] = useState(true);
 
   const canvasRef = useRef<HTMLDivElement>(null);
-  // Latest values for use inside pointer-event closures (avoids stale state).
-  const demoRef = useRef(demo);
-  demoRef.current = demo;
 
   // ---- Guest views (name, side, status, meal…) computed once ----
   const rsvpById = useMemo(
     () => new Map(rsvps.map((r) => [r.guest_id, r])),
-    [rsvps]
+    [rsvps],
   );
   const householdById = useMemo(
     () => new Map(households.map((h) => [h.household_id, h])),
-    [households]
+    [households],
   );
 
   const householdLabel = useCallback(
     (hid: number): string => {
       const primary = guests.find(
-        (g) => g.household_id === hid && g.is_primary_contact
+        (g) => g.household_id === hid && g.is_primary_contact,
       );
       const last = primary?.last_name?.trim();
       const stored = householdById.get(hid)?.search_name?.trim();
@@ -155,7 +117,7 @@ export default function SeatingTab({
       if (last) return `${last} Party`;
       return stored ?? "Party";
     },
-    [guests, householdById]
+    [guests, householdById],
   );
 
   const guestViews = useMemo(() => {
@@ -188,7 +150,7 @@ export default function SeatingTab({
         side: g.side,
         status,
         meal: r?.meal_preference
-          ? MEAL_LABELS[r.meal_preference] ?? r.meal_preference
+          ? (MEAL_LABELS[r.meal_preference] ?? r.meal_preference)
           : null,
         dietary: Boolean(r?.dietary_notes),
         householdId: g.household_id,
@@ -199,91 +161,14 @@ export default function SeatingTab({
     return map;
   }, [guests, rsvpById, householdLabel]);
 
-  // ---- Load saved layout on mount ----
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await adminFetch("/api/admin/seating");
-        const json = await res.json();
-        if (!active) return;
-
-        if (json.demo) {
-          setDemo(true);
-          const local = loadLocal();
-          if (local) {
-            setTables(local.tables ?? []);
-            setAssignments(local.assignments ?? {});
-          }
-        } else {
-          setTables(json.tables ?? []);
-          const a: Record<string, string> = {};
-          for (const row of json.assignments ?? []) a[row.guest_id] = row.table_id;
-          setAssignments(a);
-        }
-      } catch (e) {
-        if (active) setLoadError(e instanceof Error ? e.message : "Unable to load seating.");
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // ---- Persistence ----
-  // In demo mode we snapshot the whole layout to localStorage; with a DB we
-  // send one targeted mutation. Callers update React state first (optimistic).
-  const saveLocalSnapshot = useCallback(
-    (nextTables: PersistedTable[], nextAssignments: Record<string, string>) => {
-      try {
-        window.localStorage.setItem(
-          LOCAL_KEY,
-          JSON.stringify({ tables: nextTables, assignments: nextAssignments })
-        );
-      } catch {
-        /* ignore quota / private-mode */
-      }
-    },
-    []
-  );
-
-  const post = useCallback(
-    async (body: Record<string, unknown>) => {
-      if (!canEdit) return;
-      if (demoRef.current) return;
-      try {
-        await adminFetch("/api/admin/seating", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-      } catch (e) {
-        setLoadError(e instanceof Error ? e.message : "Unable to save seating.");
-      }
-    },
-    [canEdit]
-  );
-
   const saveTable = useCallback(
     (t: PersistedTable) => {
       if (!canEdit) return;
-      if (demoRef.current) {
-        setTables((prev) => {
-          const next = prev.some((x) => x.id === t.id)
-            ? prev.map((x) => (x.id === t.id ? t : x))
-            : [...prev, t];
-          saveLocalSnapshot(next, assignments);
-          return next;
-        });
-      } else {
+      {
         post({ action: "upsertTable", table: t });
       }
     },
-    [assignments, post, saveLocalSnapshot, canEdit]
+    [post, canEdit],
   );
 
   const assign = useCallback(
@@ -291,12 +176,12 @@ export default function SeatingTab({
       if (!canEdit) return;
       setAssignments((prev) => {
         const next = { ...prev, [guestId]: tableId };
-        if (demoRef.current) saveLocalSnapshot(tables, next);
+
         return next;
       });
       post({ action: "assign", guest_id: guestId, table_id: tableId });
     },
-    [tables, post, saveLocalSnapshot, canEdit]
+    [post, canEdit, setAssignments],
   );
 
   const unassign = useCallback(
@@ -305,16 +190,16 @@ export default function SeatingTab({
       setAssignments((prev) => {
         const next = { ...prev };
         delete next[guestId];
-        if (demoRef.current) saveLocalSnapshot(tables, next);
+
         return next;
       });
       post({ action: "unassign", guest_id: guestId });
     },
-    [tables, post, saveLocalSnapshot, canEdit]
+    [post, canEdit, setAssignments],
   );
 
   const addTable = useCallback(() => {
-      if (!canEdit) return;
+    if (!canEdit) return;
     const n = tables.filter((t) => t.sort_order !== -1).length;
     const t: PersistedTable = {
       id: crypto.randomUUID(),
@@ -327,11 +212,11 @@ export default function SeatingTab({
     };
     setTables((prev) => {
       const next = [...prev, t];
-      if (demoRef.current) saveLocalSnapshot(next, assignments);
+
       return next;
     });
-    if (!demoRef.current) post({ action: "upsertTable", table: t });
-  }, [tables, assignments, post, saveLocalSnapshot, canEdit]);
+    post({ action: "upsertTable", table: t });
+  }, [tables, post, canEdit, setTables]);
 
   const renameTable = useCallback(
     (id: string, name: string) => {
@@ -341,12 +226,12 @@ export default function SeatingTab({
       const updated = { ...t, name };
       setTables((prev) => {
         const next = prev.map((x) => (x.id === id ? updated : x));
-        if (demoRef.current) saveLocalSnapshot(next, assignments);
+
         return next;
       });
-      if (!demoRef.current) post({ action: "upsertTable", table: updated });
+      post({ action: "upsertTable", table: updated });
     },
-    [tables, assignments, post, saveLocalSnapshot, canEdit]
+    [tables, post, canEdit, setTables],
   );
 
   const deleteTable = useCallback(
@@ -359,14 +244,14 @@ export default function SeatingTab({
           for (const [g, tid] of Object.entries(prevA)) {
             if (tid !== id) nextA[g] = tid;
           }
-          if (demoRef.current) saveLocalSnapshot(nextTables, nextA);
+
           return nextA;
         });
         return nextTables;
       });
-      if (!demoRef.current) post({ action: "deleteTable", id });
+      post({ action: "deleteTable", id });
     },
-    [post, saveLocalSnapshot, canEdit]
+    [post, canEdit, setTables, setAssignments],
   );
 
   // ---- Table repositioning via a pointer-drag on the move handle ----
@@ -385,8 +270,8 @@ export default function SeatingTab({
         lastY = clamp((ev.clientY - rect.top) / rect.height, 0.1, 0.9);
         setTables((prev) =>
           prev.map((t) =>
-            t.id === tableId ? { ...t, pos_x: lastX, pos_y: lastY } : t
-          )
+            t.id === tableId ? { ...t, pos_x: lastX, pos_y: lastY } : t,
+          ),
         );
       };
       const onUp = () => {
@@ -401,7 +286,7 @@ export default function SeatingTab({
       window.addEventListener("pointermove", onMove);
       window.addEventListener("pointerup", onUp);
     },
-    [saveTable, canEdit]
+    [saveTable, canEdit, setTables],
   );
 
   // ---- Derived: who sits where, who's still in the pool ----
@@ -431,7 +316,7 @@ export default function SeatingTab({
         eligible(v) &&
         (!q ||
           v.name.toLowerCase().includes(q) ||
-          v.householdLabel.toLowerCase().includes(q))
+          v.householdLabel.toLowerCase().includes(q)),
     );
     // Group by household, preserving first-seen order.
     const order: number[] = [];
@@ -457,17 +342,19 @@ export default function SeatingTab({
   // ---- Drag and drop ----
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } })
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 120, tolerance: 6 },
+    }),
   );
 
   const onDragStart = (e: DragStartEvent) => {
-      if (!canEdit) return;
+    if (!canEdit) return;
     setActiveId(String(e.active.id));
     setSelectedGuest(null);
   };
 
   const onDragEnd = (e: DragEndEvent) => {
-      if (!canEdit) return;
+    if (!canEdit) return;
     setActiveId(null);
     const guestId = String(e.active.id);
     const over = e.over?.id ? String(e.over.id) : null;
@@ -481,7 +368,7 @@ export default function SeatingTab({
 
   // Tap-to-assign fallback (great on touch): pick a guest, then tap a table.
   const onTableTap = (tableId: string) => {
-      if (!canEdit) return;
+    if (!canEdit) return;
     if (selectedGuest) {
       assign(selectedGuest, tableId);
       setSelectedGuest(null);
@@ -490,7 +377,7 @@ export default function SeatingTab({
 
   // ---- Auto-seat first pass ----
   const autoSeat = useCallback(() => {
-      if (!canEdit) return;
+    if (!canEdit) return;
     // Seat everyone currently in the pool (accepted + maybe, per the filter),
     // keeping households together and grouping by side. Fills existing empty
     // seats first, then adds tables as needed. Never moves already-seated guests.
@@ -500,7 +387,7 @@ export default function SeatingTab({
       !window.confirm(
         `Auto-seat ${unseatedCount} unseated guest${
           unseatedCount === 1 ? "" : "s"
-        }? Households are kept together; you can rearrange afterwards.`
+        }? Households are kept together; you can rearrange afterwards.`,
       )
     )
       return;
@@ -569,7 +456,8 @@ export default function SeatingTab({
         const take = rest.slice(0, room);
         for (const g of take) newAssignments[g.id] = tid;
         remaining.set(tid, room - take.length);
-        if (tableSide.get(tid) == null) tableSide.set(tid, group[0].side ?? null);
+        if (tableSide.get(tid) == null)
+          tableSide.set(tid, group[0].side ?? null);
         rest = rest.slice(take.length);
       }
     }
@@ -578,9 +466,7 @@ export default function SeatingTab({
     const allTables = [...tables, ...newTables];
     setTables(allTables);
     setAssignments(newAssignments);
-    if (demoRef.current) {
-      saveLocalSnapshot(allTables, newAssignments);
-    } else {
+    {
       for (const t of newTables) post({ action: "upsertTable", table: t });
       for (const [gid, tid] of Object.entries(newAssignments)) {
         if (assignments[gid] !== tid)
@@ -589,13 +475,14 @@ export default function SeatingTab({
     }
   }, [
     canEdit,
+    setTables,
+    setAssignments,
     rosterGroups,
     unseatedCount,
     tables,
     seatedByTable,
     assignments,
     post,
-    saveLocalSnapshot,
   ]);
 
   // ---- CSV export (guest → table) ----
@@ -616,7 +503,14 @@ export default function SeatingTab({
       }
     }
     for (const g of rosterGroups.flatMap((grp) => grp.members)) {
-      rows.push(["(unseated)", g.name, g.side ?? "", g.status, g.meal ?? "", g.dietary ? "yes" : ""]);
+      rows.push([
+        "(unseated)",
+        g.name,
+        g.side ?? "",
+        g.status,
+        g.meal ?? "",
+        g.dietary ? "yes" : "",
+      ]);
     }
     void nameById;
     const csv = [
@@ -638,8 +532,7 @@ export default function SeatingTab({
   const headTable = tables.find((t) => t.sort_order === -1) ?? null;
   const roundTables = tables.filter((t) => t.sort_order !== -1);
 
-  // Seed a head table once if the layout doesn't have one yet (fresh project or
-  // demo mode). Runs after the initial load settles.
+  // Seed a head table after loading, for owners only.
   useEffect(() => {
     if (loading || loadError || !canEdit) return;
     if (tables.some((t) => t.sort_order === -1)) return;
@@ -654,8 +547,7 @@ export default function SeatingTab({
     setTables((prev) => {
       if (prev.some((t) => t.sort_order === -1)) return prev;
       const next = [head, ...prev];
-      if (demoRef.current) saveLocalSnapshot(next, assignments);
-      else post({ action: "upsertTable", table: head });
+      post({ action: "upsertTable", table: head });
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -730,8 +622,16 @@ export default function SeatingTab({
           label="DJ Booth"
           tone="charcoal"
         />
-        <Fixture className="left-[3%] bottom-[4%] h-[13%] w-[15%]" label="Bar" tone="gold" />
-        <Fixture className="right-[3%] top-[16%] h-[13%] w-[15%]" label="Bar" tone="gold" />
+        <Fixture
+          className="left-[3%] bottom-[4%] h-[13%] w-[15%]"
+          label="Bar"
+          tone="gold"
+        />
+        <Fixture
+          className="right-[3%] top-[16%] h-[13%] w-[15%]"
+          label="Bar"
+          tone="gold"
+        />
         {/* Dance floor — center, between head table and DJ */}
         <div className="pointer-events-none absolute left-1/2 top-[36%] h-[26%] w-[30%] -translate-x-1/2 rounded-md border-2 border-dashed border-sage/40 bg-sage/5">
           <span className="absolute inset-0 flex items-center justify-center font-serif text-sm italic text-sage/60">
@@ -747,7 +647,11 @@ export default function SeatingTab({
             guests={seatedByTable.get(t.id) ?? []}
             onMoveStart={(e) => startMove(e, t.id)}
             onDelete={() => {
-              if (window.confirm(`Delete "${t.name}"? Its guests go back to the list.`))
+              if (
+                window.confirm(
+                  `Delete "${t.name}"? Its guests go back to the list.`,
+                )
+              )
                 deleteTable(t.id);
             }}
             onRename={(name) => renameTable(t.id, name)}
@@ -759,10 +663,20 @@ export default function SeatingTab({
 
         {roundTables.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <button disabled={!canEdit} hidden={!canEdit} onClick={addTable} className="btn-primary flex items-center gap-2 !text-sm">
+            <button
+              disabled={!canEdit}
+              hidden={!canEdit}
+              onClick={addTable}
+              className="btn-primary flex items-center gap-2 !text-sm"
+            >
               <Plus className="h-4 w-4" />
               Add your first table
             </button>
+            {!canEdit && (
+              <p className="text-sm text-warm-gray">
+                No seating tables have been arranged yet.
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -783,7 +697,12 @@ export default function SeatingTab({
         setSelectedGuest(g);
         // On a phone in full screen, close the drawer once a guest is picked so
         // the map is visible to tap a table. (sm breakpoint = 640px)
-        if (g && fullscreen && typeof window !== "undefined" && window.innerWidth < 640) {
+        if (
+          g &&
+          fullscreen &&
+          typeof window !== "undefined" &&
+          window.innerWidth < 640
+        ) {
           setRosterOpen(false);
         }
       }}
@@ -800,7 +719,10 @@ export default function SeatingTab({
   const selectionBanner = selectedGuest ? (
     <div className="flex items-center gap-2 rounded-full border border-sage bg-white px-3 py-1.5 shadow-lg">
       <span className="font-sans text-xs text-charcoal">
-        Seating <span className="font-semibold">{guestViews.get(selectedGuest)?.name}</span>
+        Seating{" "}
+        <span className="font-semibold">
+          {guestViews.get(selectedGuest)?.name}
+        </span>
         <span className="text-warm-gray"> — tap a table</span>
       </span>
       <button
@@ -821,11 +743,21 @@ export default function SeatingTab({
         className="flex items-center gap-1 rounded-md border border-linen bg-white px-2 py-1.5 font-sans text-xs text-charcoal hover:border-sage"
         title={rosterOpen ? "Hide guest list" : "Show guest list"}
       >
-        {rosterOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
-        <span className="hidden sm:inline">{rosterOpen ? "Hide list" : "Show list"}</span>
+        {rosterOpen ? (
+          <PanelLeftClose className="h-4 w-4" />
+        ) : (
+          <PanelLeftOpen className="h-4 w-4" />
+        )}
+        <span className="hidden sm:inline">
+          {rosterOpen ? "Hide list" : "Show list"}
+        </span>
       </button>
       <div className="flex items-center rounded-md border border-linen bg-white">
-        <button onClick={() => setZoomClamped(zoom - 0.15)} className="p-1.5 text-charcoal hover:text-sage" title="Zoom out">
+        <button
+          onClick={() => setZoomClamped(zoom - 0.15)}
+          className="p-1.5 text-charcoal hover:text-sage"
+          title="Zoom out"
+        >
           <ZoomOut className="h-4 w-4" />
         </button>
         <button
@@ -835,7 +767,11 @@ export default function SeatingTab({
         >
           {zoomPct}%
         </button>
-        <button onClick={() => setZoomClamped(zoom + 0.15)} className="p-1.5 text-charcoal hover:text-sage" title="Zoom in">
+        <button
+          onClick={() => setZoomClamped(zoom + 0.15)}
+          className="p-1.5 text-charcoal hover:text-sage"
+          title="Zoom in"
+        >
           <ZoomIn className="h-4 w-4" />
         </button>
       </div>
@@ -844,20 +780,32 @@ export default function SeatingTab({
         className="flex items-center gap-1 rounded-md border border-linen bg-white px-2 py-1.5 font-sans text-xs text-charcoal hover:border-sage"
         title={fullscreen ? "Exit full screen (Esc)" : "Full screen"}
       >
-        {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-        <span className="hidden sm:inline">{fullscreen ? "Exit" : "Full screen"}</span>
+        {fullscreen ? (
+          <Minimize2 className="h-4 w-4" />
+        ) : (
+          <Maximize2 className="h-4 w-4" />
+        )}
+        <span className="hidden sm:inline">
+          {fullscreen ? "Exit" : "Full screen"}
+        </span>
       </button>
     </div>
   );
 
   const actionButtons = (
     <div className="flex flex-wrap items-center gap-2">
-      <button disabled={!canEdit} hidden={!canEdit} onClick={addTable} className="btn-outline flex items-center gap-2 !py-2 !text-sm">
+      <button
+        disabled={!canEdit}
+        hidden={!canEdit}
+        onClick={addTable}
+        className="btn-outline flex items-center gap-2 !py-2 !text-sm"
+      >
         <Plus className="h-4 w-4" />
         <span className="hidden sm:inline">Add table</span>
       </button>
       <button
-        hidden={!canEdit} onClick={autoSeat}
+        hidden={!canEdit}
+        onClick={autoSeat}
         className="btn-primary flex items-center gap-2 !py-2 !text-sm"
         disabled={!canEdit || unseatedCount === 0}
         title="Seat everyone in the pool, keeping families together"
@@ -865,7 +813,10 @@ export default function SeatingTab({
         <Sparkles className="h-4 w-4" />
         <span className="hidden sm:inline">Auto-seat</span>
       </button>
-      <button onClick={exportCsv} className="btn-outline flex items-center gap-2 !py-2 !text-sm">
+      <button
+        onClick={exportCsv}
+        className="btn-outline flex items-center gap-2 !py-2 !text-sm"
+      >
         <Download className="h-4 w-4" />
         <span className="hidden sm:inline">Export CSV</span>
       </button>
@@ -875,7 +826,11 @@ export default function SeatingTab({
   // ---------------- FULL SCREEN LAYOUT ----------------
   if (fullscreen) {
     return (
-      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      <DndContext
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+      >
         <div className="fixed inset-0 z-50 flex flex-col bg-ivory">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-linen bg-white px-3 py-2">
             {actionButtons}
@@ -922,26 +877,39 @@ export default function SeatingTab({
 
   // ---------------- NORMAL (in-page) LAYOUT ----------------
   return (
-    <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {actionButtons}
-        <div className="flex items-center gap-2">
-          {demo && (
-            <span className="rounded-full bg-gold/10 px-3 py-1 font-sans text-xs font-medium text-gold">
-              Saving to this device
-            </span>
-          )}
-          {viewControls}
-        </div>
+        <div className="flex items-center gap-2">{viewControls}</div>
       </div>
 
       {/* Stat strip */}
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <MiniStat icon={<Users className="h-4 w-4 text-sage" />} label="Seated" value={seatedCount} />
-        <MiniStat icon={<Armchair className="h-4 w-4 text-gold" />} label="Unseated" value={unseatedCount} />
-        <MiniStat icon={<Utensils className="h-4 w-4 text-sage" />} label="Tables" value={roundTables.length} />
-        <MiniStat icon={<Armchair className="h-4 w-4 text-charcoal-light" />} label="Seats" value={totalSeats} />
+        <MiniStat
+          icon={<Users className="h-4 w-4 text-sage" />}
+          label="Seated"
+          value={seatedCount}
+        />
+        <MiniStat
+          icon={<Armchair className="h-4 w-4 text-gold" />}
+          label="Unseated"
+          value={unseatedCount}
+        />
+        <MiniStat
+          icon={<Utensils className="h-4 w-4 text-sage" />}
+          label="Tables"
+          value={roundTables.length}
+        />
+        <MiniStat
+          icon={<Armchair className="h-4 w-4 text-charcoal-light" />}
+          label="Seats"
+          value={totalSeats}
+        />
       </div>
 
       <div
@@ -957,8 +925,15 @@ export default function SeatingTab({
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <p className="font-sans text-xs text-warm-gray">
-              Drag a guest onto a table, or tap a guest then a table. On a phone,{" "}
-              <span className="font-medium">Full screen</span> works best.
+              {canEdit ? (
+                <>
+                  Drag a guest onto a table, or tap a guest then a table. On a
+                  phone, <span className="font-medium">Full screen</span> works
+                  best.
+                </>
+              ) : (
+                "View the seating plan. Use the guest list to search and filter."
+              )}
             </p>
             {selectionBanner}
           </div>
@@ -981,484 +956,3 @@ export default function SeatingTab({
 // ------------------------------------------------------------------
 // Roster rail
 // ------------------------------------------------------------------
-
-function RosterRail({
-  groups,
-  filter,
-  setFilter,
-  showDeclined,
-  setShowDeclined,
-  query,
-  setQuery,
-  selectedGuest,
-  setSelectedGuest,
-  heightClass = "max-h-[74vh]",
-}: {
-  groups: { hid: number; label: string; members: GuestView[] }[];
-  filter: FilterMode;
-  setFilter: (f: FilterMode) => void;
-  showDeclined: boolean;
-  setShowDeclined: (v: boolean) => void;
-  query: string;
-  setQuery: (q: string) => void;
-  selectedGuest: string | null;
-  setSelectedGuest: (g: string | null) => void;
-  heightClass?: string;
-}) {
-  const { setNodeRef, isOver } = useDroppable({ id: "roster" });
-  return (
-    <div
-      ref={setNodeRef}
-      className={`flex ${heightClass} w-full flex-col border bg-white transition-colors ${
-        heightClass.includes("rounded-none") ? "" : "rounded-lg"
-      } ${isOver ? "border-sage bg-sage/5" : "border-linen"}`}
-    >
-      <div className="border-b border-linen p-3">
-        <div className="flex rounded-lg bg-ivory p-1 font-sans text-xs">
-          <SegBtn active={filter === "accepted"} onClick={() => setFilter("accepted")}>
-            Accepted
-          </SegBtn>
-          <SegBtn active={filter === "maybe"} onClick={() => setFilter("maybe")}>
-            + Maybe
-          </SegBtn>
-        </div>
-        <label className="mt-2 flex items-center gap-2 font-sans text-xs text-warm-gray">
-          <input
-            type="checkbox"
-            checked={showDeclined}
-            onChange={(e) => setShowDeclined(e.target.checked)}
-            className="accent-sage"
-          />
-          Show declined
-        </label>
-        <div className="relative mt-2">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-warm-gray" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search guests…"
-            className="w-full rounded-md border border-linen bg-white py-1.5 pl-8 pr-2 font-sans text-xs outline-none focus:border-sage"
-          />
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
-        {groups.length === 0 ? (
-          <p className="py-8 text-center font-sans text-xs text-warm-gray">
-            Everyone in this list is seated. 🎉
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {groups.map((g) => (
-              <div key={g.hid}>
-                <p className="mb-1 font-sans text-[11px] font-semibold uppercase tracking-wide text-warm-gray">
-                  {g.label}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {g.members.map((v) => (
-                    <GuestChip
-                      key={v.id}
-                      view={v}
-                      selected={selectedGuest === v.id}
-                      onSelect={() =>
-                        setSelectedGuest(selectedGuest === v.id ? null : v.id)
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {selectedGuest && (
-        <div className="border-t border-linen bg-sage/5 px-3 py-2 font-sans text-xs text-sage">
-          Tap a table to seat this guest.
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SegBtn({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex-1 rounded-md px-2 py-1 font-medium transition-colors ${
-        active ? "bg-white text-charcoal shadow-sm" : "text-warm-gray"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-// ------------------------------------------------------------------
-// Guest chip (draggable + selectable)
-// ------------------------------------------------------------------
-
-function GuestChip({
-  view,
-  selected,
-  onSelect,
-}: {
-  view: GuestView;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const { canEdit } = useAdmin();
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    disabled: !canEdit,
-    id: view.id,
-  });
-  return (
-    <button
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      disabled={!canEdit} onClick={onSelect}
-      className={`touch-none ${isDragging ? "opacity-30" : ""} ${
-        selected ? "ring-2 ring-sage ring-offset-1" : ""
-      } rounded-full`}
-    >
-      <ChipBody view={view} />
-    </button>
-  );
-}
-
-function ChipBody({ view, dragging }: { view: GuestView; dragging?: boolean }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-linen bg-white px-2.5 py-1 font-sans text-xs text-charcoal ${
-        dragging ? "shadow-lg" : "hover:border-sage"
-      } ${view.status === "declined" ? "line-through opacity-60" : ""}`}
-    >
-      <span
-        className="h-2 w-2 shrink-0 rounded-full"
-        style={{ backgroundColor: sideColor(view.side) }}
-      />
-      <span className="whitespace-nowrap">{view.name}</span>
-      {view.typeTag && (
-        <span className="text-[10px] text-warm-gray">({view.typeTag})</span>
-      )}
-      {view.status === "pending" && (
-        <span className="text-[10px] font-medium text-gold">?</span>
-      )}
-      {view.dietary && <Utensils className="h-3 w-3 text-sage" />}
-    </span>
-  );
-}
-
-// ------------------------------------------------------------------
-// Round table on the floor plan (droppable)
-// ------------------------------------------------------------------
-
-function TableNode({
-  table,
-  guests,
-  onMoveStart,
-  onDelete,
-  onRename,
-  onTap,
-  onUnassign,
-  hasSelection,
-}: {
-  table: PersistedTable;
-  guests: GuestView[];
-  onMoveStart: (e: React.PointerEvent) => void;
-  onDelete: () => void;
-  onRename: (name: string) => void;
-  onTap: () => void;
-  onUnassign: (guestId: string) => void;
-  hasSelection: boolean;
-}) {
-  const { canEdit } = useAdmin();
-  const { setNodeRef, isOver } = useDroppable({ id: `table:${table.id}` });
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(table.name);
-
-  const full = guests.length >= table.capacity;
-  const over = guests.length > table.capacity;
-
-  return (
-    <div
-      className="absolute -translate-x-1/2 -translate-y-1/2"
-      style={{ left: `${table.pos_x * 100}%`, top: `${table.pos_y * 100}%` }}
-    >
-      <div
-        ref={setNodeRef}
-        onClick={hasSelection ? onTap : undefined}
-        className={`w-[150px] rounded-2xl border-2 bg-white/95 p-2 shadow-sm backdrop-blur transition-colors ${
-          isOver
-            ? "border-sage ring-2 ring-sage/30"
-            : over
-              ? "border-red-300"
-              : "border-linen"
-        } ${hasSelection ? "cursor-pointer hover:border-sage" : ""}`}
-      >
-        {/* Header: move handle · name · seats · delete */}
-        <div className="flex items-center gap-1">
-          <button
-            disabled={!canEdit} hidden={!canEdit} onPointerDown={onMoveStart}
-            className="cursor-grab touch-none rounded p-0.5 text-warm-gray hover:bg-ivory active:cursor-grabbing"
-            title="Drag to move table"
-          >
-            <Move className="h-3.5 w-3.5" />
-          </button>
-          {editing ? (
-            <input
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={() => {
-                setEditing(false);
-                if (draft.trim()) onRename(draft.trim());
-                else setDraft(table.name);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-              }}
-              className="min-w-0 flex-1 rounded border border-sage bg-white px-1 py-0.5 font-sans text-xs outline-none"
-            />
-          ) : (
-            <button
-              onClick={() => {
-                setDraft(table.name);
-                if (canEdit) setEditing(true);
-              }}
-              className="group flex min-w-0 flex-1 items-center gap-1 text-left"
-            >
-              <span className="truncate font-serif text-sm text-charcoal">
-                {table.name}
-              </span>
-              <Pencil className="h-2.5 w-2.5 shrink-0 text-warm-gray opacity-0 group-hover:opacity-100" />
-            </button>
-          )}
-          <span
-            className={`shrink-0 rounded-full px-1.5 py-0.5 font-sans text-[10px] font-semibold ${
-              over
-                ? "bg-red-100 text-red-600"
-                : full
-                  ? "bg-gold/15 text-gold-dark"
-                  : "bg-ivory text-warm-gray"
-            }`}
-          >
-            {guests.length}/{table.capacity}
-          </span>
-          <button
-            disabled={!canEdit} hidden={!canEdit} onClick={onDelete}
-            className="shrink-0 rounded p-0.5 text-warm-gray hover:bg-red-50 hover:text-red-500"
-            title="Delete table"
-          >
-            <Trash2 className="h-3 w-3" />
-          </button>
-        </div>
-
-        {/* Seated guests */}
-        <div className="mt-1.5 min-h-[40px] space-y-1">
-          {guests.length === 0 ? (
-            <p className="py-2 text-center font-sans text-[11px] italic text-warm-gray">
-              Drop guests here
-            </p>
-          ) : (
-            guests.map((v) => (
-              <div
-                key={v.id}
-                className="flex items-center gap-1 rounded-md bg-ivory px-1.5 py-0.5"
-              >
-                <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: sideColor(v.side) }}
-                />
-                <span className="min-w-0 flex-1 truncate font-sans text-[11px] text-charcoal">
-                  {v.name}
-                </span>
-                {v.dietary && <Utensils className="h-2.5 w-2.5 shrink-0 text-sage" />}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUnassign(v.id);
-                  }}
-                  className="shrink-0 rounded text-warm-gray hover:text-red-500"
-                  disabled={!canEdit} hidden={!canEdit} title="Remove from table"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ------------------------------------------------------------------
-// Head table — long, fixed to the north wall, assignable but not movable
-// ------------------------------------------------------------------
-
-function HeadTableNode({
-  table,
-  guests,
-  onRename,
-  onTap,
-  onUnassign,
-  hasSelection,
-}: {
-  table: PersistedTable;
-  guests: GuestView[];
-  onRename: (name: string) => void;
-  onTap: () => void;
-  onUnassign: (guestId: string) => void;
-  hasSelection: boolean;
-}) {
-  const { canEdit } = useAdmin();
-  const { setNodeRef, isOver } = useDroppable({ id: `table:${table.id}` });
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(table.name);
-  const over = guests.length > table.capacity;
-
-  return (
-    <div
-      ref={setNodeRef}
-      onClick={hasSelection ? onTap : undefined}
-      className={`absolute left-[6%] right-[6%] top-[2%] rounded-xl border-2 bg-white/95 p-2 shadow-sm backdrop-blur transition-colors ${
-        isOver
-          ? "border-sage ring-2 ring-sage/30"
-          : over
-            ? "border-red-300"
-            : "border-sage/50"
-      } ${hasSelection ? "cursor-pointer hover:border-sage" : ""}`}
-    >
-      <div className="flex items-center justify-center gap-2">
-        {editing ? (
-          <input
-            autoFocus
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={() => {
-              setEditing(false);
-              if (draft.trim()) onRename(draft.trim());
-              else setDraft(table.name);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-            }}
-            className="rounded border border-sage bg-white px-1 py-0.5 text-center font-serif text-sm outline-none"
-          />
-        ) : (
-          <button
-            onClick={() => {
-              setDraft(table.name);
-              if (canEdit) setEditing(true);
-            }}
-            className="group flex items-center gap-1"
-          >
-            <span className="font-serif text-sm font-medium uppercase tracking-wide text-sage-dark">
-              {table.name}
-            </span>
-            <Pencil className="h-2.5 w-2.5 text-warm-gray opacity-0 group-hover:opacity-100" />
-          </button>
-        )}
-        <span
-          className={`rounded-full px-1.5 py-0.5 font-sans text-[10px] font-semibold ${
-            over ? "bg-red-100 text-red-600" : "bg-ivory text-warm-gray"
-          }`}
-        >
-          {guests.length}/{table.capacity}
-        </span>
-      </div>
-
-      <div className="mt-1 flex flex-wrap justify-center gap-1">
-        {guests.length === 0 ? (
-          <span className="py-1 font-sans text-[11px] italic text-warm-gray">
-            Drop the couple &amp; wedding party here
-          </span>
-        ) : (
-          guests.map((v) => (
-            <span
-              key={v.id}
-              className="inline-flex items-center gap-1 rounded-full bg-ivory px-2 py-0.5 font-sans text-[11px] text-charcoal"
-            >
-              <span
-                className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ backgroundColor: sideColor(v.side) }}
-              />
-              {v.name}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUnassign(v.id);
-                }}
-                className="text-warm-gray hover:text-red-500"
-                title="Remove from head table"
-              >
-                <X className="h-2.5 w-2.5" />
-              </button>
-            </span>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ------------------------------------------------------------------
-// Small pieces
-// ------------------------------------------------------------------
-
-function Fixture({
-  className,
-  label,
-  tone,
-}: {
-  className: string;
-  label: string;
-  tone: "sage" | "gold" | "charcoal";
-}) {
-  const tones = {
-    sage: "bg-sage/15 border-sage/40 text-sage-dark",
-    gold: "bg-gold/15 border-gold/40 text-gold-dark",
-    charcoal: "bg-charcoal/10 border-charcoal/30 text-charcoal",
-  };
-  return (
-    <div
-      className={`pointer-events-none absolute flex items-center justify-center rounded-md border ${tones[tone]} ${className}`}
-    >
-      <span className="font-sans text-xs font-semibold uppercase tracking-wide">
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function MiniStat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-lg border border-linen bg-white px-4 py-3">
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className="font-sans text-[11px] uppercase tracking-wide text-warm-gray">
-          {label}
-        </span>
-      </div>
-      <p className="mt-1 font-serif text-2xl text-charcoal">{value}</p>
-    </div>
-  );
-}

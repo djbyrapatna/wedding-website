@@ -2,24 +2,28 @@ import { requireAdmin } from "@/lib/server/admin-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-
 type ItemState = { checked: boolean; notes: string };
 type StateMap = Record<string, ItemState>;
-
 
 // GET — return the saved state for every touched checklist item.
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (auth.response) return auth.response;
   if (!supabase) {
-    return NextResponse.json({ error: "Unable to load checklist." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Unable to load checklist." },
+      { status: 503 },
+    );
   }
 
   try {
     const { data, error } = await supabase!.from("checklist_items").select("*");
 
     if (error) {
-      return NextResponse.json({ error: "Unable to load checklist." }, { status: 503 });
+      return NextResponse.json(
+        { error: "Unable to load checklist." },
+        { status: 503 },
+      );
     }
 
     const items: StateMap = {};
@@ -29,7 +33,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ items });
   } catch {
-    return NextResponse.json({ error: "Unable to load checklist." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Unable to load checklist." },
+      { status: 503 },
+    );
   }
 }
 
@@ -46,12 +53,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
 
+  if (!body || typeof body !== "object")
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   const { item_id, checked, notes } = body;
-  if (typeof item_id !== "string" || typeof checked !== "boolean") {
+  if (
+    typeof item_id !== "string" ||
+    typeof checked !== "boolean" ||
+    (notes != null && typeof notes !== "string")
+  ) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
   if (!supabase) {
-    return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Unable to save changes." },
+      { status: 503 },
+    );
   }
 
   try {
@@ -62,15 +78,21 @@ export async function POST(request: NextRequest) {
         notes: notes ?? null,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "item_id" }
+      { onConflict: "item_id" },
     );
 
     if (error) {
-      return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+      return NextResponse.json(
+        { error: "Unable to save changes." },
+        { status: 503 },
+      );
     }
 
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Unable to save changes." },
+      { status: 503 },
+    );
   }
 }

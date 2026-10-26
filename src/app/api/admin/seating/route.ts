@@ -6,8 +6,6 @@ import { supabase } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-
-
 // GET — return every table and every assignment.
 // and the feature still works in local development.
 export async function GET(request: NextRequest) {
@@ -15,7 +13,10 @@ export async function GET(request: NextRequest) {
   if (auth.response) return auth.response;
 
   if (!supabase) {
-    return NextResponse.json({ error: "Unable to load seating." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Unable to load seating." },
+      { status: 503 },
+    );
   }
 
   try {
@@ -25,7 +26,10 @@ export async function GET(request: NextRequest) {
     ]);
 
     if (tablesRes.error || assignmentsRes.error) {
-      return NextResponse.json({ error: "Unable to load seating." }, { status: 503 });
+      return NextResponse.json(
+        { error: "Unable to load seating." },
+        { status: 503 },
+      );
     }
 
     return NextResponse.json({
@@ -33,7 +37,10 @@ export async function GET(request: NextRequest) {
       assignments: assignmentsRes.data,
     });
   } catch {
-    return NextResponse.json({ error: "Unable to load seating." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Unable to load seating." },
+      { status: 503 },
+    );
   }
 }
 
@@ -46,7 +53,12 @@ export async function GET(request: NextRequest) {
 type Body =
   | { action: "upsertTable"; table: Record<string, unknown> }
   | { action: "deleteTable"; id: string }
-  | { action: "assign"; guest_id: string; table_id: string; seat_index?: number | null }
+  | {
+      action: "assign";
+      guest_id: string;
+      table_id: string;
+      seat_index?: number | null;
+    }
   | { action: "unassign"; guest_id: string };
 
 export async function POST(request: NextRequest) {
@@ -59,8 +71,14 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
+  if (!body || typeof body !== "object")
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+
   if (!supabase) {
-    return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Unable to save changes." },
+      { status: 503 },
+    );
   }
 
   try {
@@ -71,7 +89,11 @@ export async function POST(request: NextRequest) {
           .upsert(body.table as never)
           .select()
           .single();
-        if (error) return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+        if (error)
+          return NextResponse.json(
+            { error: "Unable to save changes." },
+            { status: 503 },
+          );
         return NextResponse.json({ ok: true, table: data });
       }
 
@@ -80,7 +102,11 @@ export async function POST(request: NextRequest) {
           .from("seating_tables")
           .delete()
           .eq("id", body.id);
-        if (error) return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+        if (error)
+          return NextResponse.json(
+            { error: "Unable to save changes." },
+            { status: 503 },
+          );
         return NextResponse.json({ ok: true });
       }
 
@@ -92,9 +118,13 @@ export async function POST(request: NextRequest) {
             seat_index: body.seat_index ?? null,
             updated_at: new Date().toISOString(),
           },
-          { onConflict: "guest_id" }
+          { onConflict: "guest_id" },
         );
-        if (error) return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+        if (error)
+          return NextResponse.json(
+            { error: "Unable to save changes." },
+            { status: 503 },
+          );
         return NextResponse.json({ ok: true });
       }
 
@@ -103,7 +133,11 @@ export async function POST(request: NextRequest) {
           .from("seating_assignments")
           .delete()
           .eq("guest_id", body.guest_id);
-        if (error) return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+        if (error)
+          return NextResponse.json(
+            { error: "Unable to save changes." },
+            { status: 503 },
+          );
         return NextResponse.json({ ok: true });
       }
 
@@ -111,6 +145,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }
   } catch {
-    return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Unable to save changes." },
+      { status: 503 },
+    );
   }
 }

@@ -1,9 +1,11 @@
 "use client";
 
+import { RSVP_COPY } from "@/config/rsvp";
+
 import { motion } from "framer-motion";
 import { Check, Heart } from "lucide-react";
 import Link from "next/link";
-import type { GuestRsvpData } from "./RsvpForm";
+import type { GuestRsvpData } from "@/lib/rsvp/types";
 
 interface StepConfirmationProps {
   guests: GuestRsvpData[];
@@ -16,7 +18,7 @@ export default function StepConfirmation({
 }: StepConfirmationProps) {
   const anyAccepted = guests.some((g) => g.attending_wedding === true);
   const anyRehearsal = guests.some(
-    (g) => g.invited_rehearsal_dinner && g.attending_rehearsal === true
+    (g) => g.invited_rehearsal_dinner && g.attending_rehearsal === true,
   );
 
   const nameFor = (g: GuestRsvpData) =>
@@ -47,20 +49,18 @@ export default function StepConfirmation({
         transition={{ delay: 0.6 }}
       >
         <h2 className="mt-8 font-serif text-3xl text-charcoal sm:text-4xl">
-          {anyAccepted ? "We Can't Wait to See You!" : "We'll Miss You!"}
+          {anyAccepted ? RSVP_COPY.acceptedTitle : RSVP_COPY.declinedTitle}
         </h2>
 
         <div className="divider-gold mt-2" />
 
         {anyAccepted ? (
           <p className="mt-4 font-serif text-lg text-charcoal-light">
-            Thank you, {searchName}! Your RSVP has been received. We&apos;re so
-            excited to celebrate with you in August!
+            {RSVP_COPY.acceptedMessage(searchName)}
           </p>
         ) : (
           <p className="mt-4 font-serif text-lg text-charcoal-light">
-            Thank you for letting us know, {searchName}. We&apos;ll miss you!
-            You&apos;ll be in our hearts on our special day.
+            {RSVP_COPY.declinedMessage(searchName)}
           </p>
         )}
       </motion.div>
@@ -89,7 +89,9 @@ export default function StepConfirmation({
                       : "text-warm-gray"
                   }
                 >
-                  {guest.attending_wedding === true ? "Attending" : "Not Attending"}
+                  {guest.attending_wedding === true
+                    ? "Attending"
+                    : "Not Attending"}
                 </span>
               </div>
             ))}
@@ -102,7 +104,11 @@ export default function StepConfirmation({
               </p>
               <div className="mt-3 space-y-2">
                 {guests
-                  .filter((g) => g.invited_rehearsal_dinner && g.attending_rehearsal === true)
+                  .filter(
+                    (g) =>
+                      g.invited_rehearsal_dinner &&
+                      g.attending_rehearsal === true,
+                  )
                   .map((guest) => (
                     <div
                       key={guest.guest_id}
