@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
 import FadeIn from "@/components/animations/FadeIn";
-import FLUFF from "@/lib/fluff.generated.json";
+import FLUFF from "@/config/generated/fluff.json";
 
 const FLUFF_FILES = FLUFF as string[];
 

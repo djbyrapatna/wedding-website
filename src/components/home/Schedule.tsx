@@ -1,5 +1,8 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import { motion } from "framer-motion";
 import { Calendar, MapPin } from "lucide-react";
 import { SCHEDULE } from "@/lib/constants";
@@ -11,12 +14,8 @@ export default function Schedule() {
       <div className="mx-auto max-w-4xl px-6">
         <FadeIn>
           <div className="text-center">
-            <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">
-              The itinerary
-            </p>
-            <h2 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl">
-              Wedding Day at a Glance
-            </h2>
+            <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">{PAGE_COPY.components_home_Schedule.the_itinerary}</p>
+            <h2 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl">{PAGE_COPY.components_home_Schedule.wedding_day_at_a_glance}</h2>
             <div className="divider-gold" />
           </div>
         </FadeIn>

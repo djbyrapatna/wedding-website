@@ -1,5 +1,8 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -15,58 +18,7 @@ import FadeIn from "@/components/animations/FadeIn";
 import AustinInteractiveMap from "@/components/accommodations/AustinInteractiveMap";
 import FluffHero from "@/components/layout/FluffHero";
 
-const HOTELS = [
-  {
-    name: "Austin Marriott Downtown",
-    description:
-      "Reliable brand with a great downtown location. Modern rooms, rooftop pool, and walking distance to restaurants and nightlife.",
-    driveToElla: "~8 min to Hotel Ella",
-    driveToChurch: "~18 min to SJN Church",
-    priceRange: "$$",
-    image: "/images/photos/hotel/marriott.jpeg",
-    url: "https://www.marriott.com/en-us/hotels/ausdt-austin-marriott-downtown/",
-  },
-  {
-    name: "Hyatt Regency Austin",
-    description:
-      "Beautiful Lady Bird Lake views right on Congress Avenue. Great pool and easy access to the hike-and-bike trail.",
-    driveToElla: "~12 min to Hotel Ella",
-    driveToChurch: "~20 min to SJN Church",
-    priceRange: "$$",
-    image: "/images/photos/hotel/hyatt.jpeg",
-    url: "https://www.hyatt.com/hyatt-regency/en-US/ausra-hyatt-regency-austin",
-  },
-  {
-    name: "Hilton Austin",
-    description:
-      "Downtown convention district location with spacious rooms, a rooftop pool, and convenient access to 6th Street entertainment.",
-    driveToElla: "~10 min to Hotel Ella",
-    driveToChurch: "~20 min to SJN Church",
-    priceRange: "$$",
-    image: "/images/photos/hotel/hilton.jpeg",
-    url: "https://www.hilton.com/en/hotels/auscvhh-hilton-austin/",
-  },
-  {
-    name: "Fairmont Austin",
-    description:
-      "Modern luxury with stunning Lady Bird Lake views. Exceptional pool deck, spa, and walkable to Congress Avenue.",
-    driveToElla: "~12 min to Hotel Ella",
-    driveToChurch: "~22 min to SJN Church",
-    priceRange: "$$$",
-    image: "/images/photos/hotel/fairmont.jpg",
-    url: "https://www.fairmont.com/austin/",
-  },
-  {
-    name: "The Driskill Hotel",
-    description:
-      "A legendary Austin landmark on 6th Street. Historic luxury with modern amenities, right in the heart of downtown.",
-    driveToElla: "~10 min to Hotel Ella",
-    driveToChurch: "~20 min to SJN Church",
-    priceRange: "$$$",
-    image: "/images/photos/hotel/driskil.jpeg",
-    url: "https://www.hyatt.com/en-US/hotel/texas/the-driskill/drial",
-  },
-];
+import { HOTELS } from "@/config/hotels";
 
 // Offsets in-page anchor jumps so the fixed nav doesn't cover the heading.
 const SCROLL_MT = "scroll-mt-24 sm:scroll-mt-28";
@@ -75,9 +27,9 @@ export default function AccommodationsContent() {
   return (
     <>
       <FluffHero
-        eyebrow="Your travel guide"
-        title="Getting There & Staying"
-        subtitle="Everything you need to plan your trip to Austin — flights, hotels, and getting around."
+        eyebrow={PAGE_COPY.app_accommodations_AccommodationsContent.your_travel_guide}
+        title={PAGE_COPY.app_accommodations_AccommodationsContent.getting_there_staying}
+        subtitle={PAGE_COPY.app_accommodations_AccommodationsContent.everything_you_need_to_plan_your_trip_to_austin_flights}
       />
 
       {/* Section 1: Key Locations — moved to top because "where is everything"
@@ -87,9 +39,7 @@ export default function AccommodationsContent() {
         <div className="mx-auto max-w-5xl px-6">
           <FadeIn>
             <div className="text-center">
-              <h2 className="font-serif text-3xl text-charcoal sm:text-4xl">
-                Key Locations
-              </h2>
+              <h2 className="font-serif text-3xl text-charcoal sm:text-4xl">{PAGE_COPY.app_accommodations_AccommodationsContent.key_locations}</h2>
               <div className="divider-gold" />
             </div>
           </FadeIn>
@@ -99,15 +49,15 @@ export default function AccommodationsContent() {
             <div className="mt-6 flex flex-col items-center gap-3 text-center sm:mt-8 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-6">
               <div className="flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-sage text-xs font-bold text-white">1</span>
-                <span className="font-sans text-xs text-charcoal sm:text-sm">Austin-Bergstrom Airport (AUS)</span>
+                <span className="font-sans text-xs text-charcoal sm:text-sm">{PAGE_COPY.app_accommodations_AccommodationsContent.austin_bergstrom_airport_aus}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold text-xs font-bold text-white">2</span>
-                <span className="font-sans text-xs text-charcoal sm:text-sm">Ceremony · St. John Neumann</span>
+                <span className="font-sans text-xs text-charcoal sm:text-sm">{PAGE_COPY.app_accommodations_AccommodationsContent.ceremony_st_john_neumann}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-charcoal text-xs font-bold text-white">3</span>
-                <span className="font-sans text-xs text-charcoal sm:text-sm">Reception · Hotel Ella</span>
+                <span className="font-sans text-xs text-charcoal sm:text-sm">{PAGE_COPY.app_accommodations_AccommodationsContent.reception_hotel_ella}</span>
               </div>
             </div>
           </FadeIn>
@@ -117,9 +67,7 @@ export default function AccommodationsContent() {
             <div className="mt-6">
               <AustinInteractiveMap />
             </div>
-            <p className="mt-3 text-center font-sans text-xs text-warm-gray">
-              Tap a pin for directions. All three locations are within 25 minutes of each other.
-            </p>
+            <p className="mt-3 text-center font-sans text-xs text-warm-gray">{PAGE_COPY.app_accommodations_AccommodationsContent.tap_a_pin_for_directions_all_three_locations_are_within}</p>
           </FadeIn>
 
           {/* Quick direction cards */}
@@ -133,8 +81,8 @@ export default function AccommodationsContent() {
               >
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-xs font-bold text-white">1</span>
                 <div>
-                  <p className="font-sans text-sm font-medium text-charcoal group-hover:text-sage transition-colors">Austin Airport (AUS)</p>
-                  <p className="font-sans text-xs text-warm-gray">Get Directions</p>
+                  <p className="font-sans text-sm font-medium text-charcoal group-hover:text-sage transition-colors">{PAGE_COPY.app_accommodations_AccommodationsContent.austin_airport_aus}</p>
+                  <p className="font-sans text-xs text-warm-gray">{PAGE_COPY.app_accommodations_AccommodationsContent.get_directions}</p>
                 </div>
                 <ExternalLink className="ml-auto h-3.5 w-3.5 shrink-0 text-warm-gray group-hover:text-sage transition-colors" />
               </a>
@@ -147,8 +95,8 @@ export default function AccommodationsContent() {
               >
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold text-xs font-bold text-white">2</span>
                 <div>
-                  <p className="font-sans text-sm font-medium text-charcoal group-hover:text-gold transition-colors">Ceremony · St. John Neumann</p>
-                  <p className="font-sans text-xs text-warm-gray">Get Directions</p>
+                  <p className="font-sans text-sm font-medium text-charcoal group-hover:text-gold transition-colors">{PAGE_COPY.app_accommodations_AccommodationsContent.ceremony_st_john_neumann_1}</p>
+                  <p className="font-sans text-xs text-warm-gray">{PAGE_COPY.app_accommodations_AccommodationsContent.get_directions_2}</p>
                 </div>
                 <ExternalLink className="ml-auto h-3.5 w-3.5 shrink-0 text-warm-gray group-hover:text-gold transition-colors" />
               </a>
@@ -161,8 +109,8 @@ export default function AccommodationsContent() {
               >
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-charcoal text-xs font-bold text-white">3</span>
                 <div>
-                  <p className="font-sans text-sm font-medium text-charcoal group-hover:text-sage transition-colors">Reception · Hotel Ella</p>
-                  <p className="font-sans text-xs text-warm-gray">Get Directions</p>
+                  <p className="font-sans text-sm font-medium text-charcoal group-hover:text-sage transition-colors">{PAGE_COPY.app_accommodations_AccommodationsContent.reception_hotel_ella_3}</p>
+                  <p className="font-sans text-xs text-warm-gray">{PAGE_COPY.app_accommodations_AccommodationsContent.get_directions_4}</p>
                 </div>
                 <ExternalLink className="ml-auto h-3.5 w-3.5 shrink-0 text-warm-gray group-hover:text-sage transition-colors" />
               </a>
@@ -173,40 +121,30 @@ export default function AccommodationsContent() {
               click straight to it instead of hunting. */}
           <FadeIn delay={0.4}>
             <div className="mt-12 border-t border-linen pt-10">
-              <p className="text-center font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">
-                More on this page
-              </p>
+              <p className="text-center font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">{PAGE_COPY.app_accommodations_AccommodationsContent.more_on_this_page}</p>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
                 <a
                   href="#flights"
                   className="group inline-flex items-center gap-2 rounded-full border border-linen bg-white px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-[0.15em] text-charcoal shadow-soft transition-all hover:-translate-y-0.5 hover:border-sage hover:text-sage hover:shadow-medium"
                 >
-                  <Plane className="h-3.5 w-3.5 text-sage" />
-                  Flights
-                </a>
+                  <Plane className="h-3.5 w-3.5 text-sage" />{PAGE_COPY.app_accommodations_AccommodationsContent.flights}</a>
                 <a
                   href="#airport"
                   className="group inline-flex items-center gap-2 rounded-full border border-linen bg-white px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-[0.15em] text-charcoal shadow-soft transition-all hover:-translate-y-0.5 hover:border-gold hover:text-gold hover:shadow-medium"
                 >
-                  <Car className="h-3.5 w-3.5 text-gold" />
-                  Getting Around
-                </a>
+                  <Car className="h-3.5 w-3.5 text-gold" />{PAGE_COPY.app_accommodations_AccommodationsContent.getting_around}</a>
                 <a
                   href="#hotels"
                   className="group inline-flex items-center gap-2 rounded-full border border-linen bg-white px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-[0.15em] text-charcoal shadow-soft transition-all hover:-translate-y-0.5 hover:border-sage hover:text-sage hover:shadow-medium"
                 >
-                  <BedDouble className="h-3.5 w-3.5 text-sage" />
-                  Where to Stay
-                </a>
+                  <BedDouble className="h-3.5 w-3.5 text-sage" />{PAGE_COPY.app_accommodations_AccommodationsContent.where_to_stay}</a>
               </div>
               <motion.p
                 animate={{ y: [0, 4, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 className="mt-5 flex items-center justify-center gap-1.5 font-sans text-[11px] uppercase tracking-[0.2em] text-warm-gray"
               >
-                <ChevronDown className="h-3 w-3" />
-                Scroll for details
-              </motion.p>
+                <ChevronDown className="h-3 w-3" />{PAGE_COPY.app_accommodations_AccommodationsContent.scroll_for_details}</motion.p>
             </div>
           </FadeIn>
         </div>
@@ -221,26 +159,16 @@ export default function AccommodationsContent() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sage/10">
                   <Plane className="h-5 w-5 text-sage" />
                 </div>
-                <h2 className="font-serif text-2xl text-charcoal sm:text-3xl">
-                  Flights
-                </h2>
+                <h2 className="font-serif text-2xl text-charcoal sm:text-3xl">{PAGE_COPY.app_accommodations_AccommodationsContent.flights_5}</h2>
               </div>
-              <p className="mt-4 font-sans text-sm leading-relaxed text-charcoal-light sm:text-base">
-                Fly into <strong>Austin-Bergstrom International Airport (AUS)</strong>,
-                located about 15 minutes from downtown Austin and approximately
-                25 minutes from St. John Neumann Church. Most major airlines
-                offer direct flights. We recommend booking early for the best
-                rates — August is a popular travel month!
-              </p>
+              <p className="mt-4 font-sans text-sm leading-relaxed text-charcoal-light sm:text-base">{PAGE_COPY.app_accommodations_AccommodationsContent.fly_into}<strong>{PAGE_COPY.app_accommodations_AccommodationsContent.austin_bergstrom_international_airport_aus}</strong>{PAGE_COPY.app_accommodations_AccommodationsContent.located_about_15_minutes_from_downtown_austin_and_appro}</p>
               <a
                 href="https://www.google.com/travel/flights?q=flights%20to%20AUS%20on%202026-08-14%20through%202026-08-16"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-6 inline-flex items-center gap-2 rounded-full bg-sage px-6 py-2.5 font-sans text-xs font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-sage-dark"
               >
-                <Plane className="h-3.5 w-3.5" />
-                Browse Flights
-              </a>
+                <Plane className="h-3.5 w-3.5" />{PAGE_COPY.app_accommodations_AccommodationsContent.browse_flights}</a>
             </div>
           </FadeIn>
         </div>
@@ -255,49 +183,29 @@ export default function AccommodationsContent() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sage/10">
                   <Car className="h-5 w-5 text-sage" />
                 </div>
-                <h2 className="font-serif text-2xl text-charcoal sm:text-3xl">
-                  Getting from the Airport
-                </h2>
+                <h2 className="font-serif text-2xl text-charcoal sm:text-3xl">{PAGE_COPY.app_accommodations_AccommodationsContent.getting_from_the_airport}</h2>
               </div>
 
               <div className="mt-6 grid gap-6 md:grid-cols-2">
                 {/* Uber/Lyft */}
                 <div className="rounded-lg border border-linen bg-ivory/50 p-6">
-                  <h3 className="font-serif text-lg text-charcoal">
-                    Uber &amp; Lyft
-                  </h3>
-                  <p className="mt-2 font-sans text-sm leading-relaxed text-charcoal-light">
-                    The easiest way to get around Austin. Expect <strong>$20–30</strong> to
-                    downtown, about a <strong>15–20 minute</strong> ride.
-                  </p>
+                  <h3 className="font-serif text-lg text-charcoal">{PAGE_COPY.app_accommodations_AccommodationsContent.uber_lyft}</h3>
+                  <p className="mt-2 font-sans text-sm leading-relaxed text-charcoal-light">{PAGE_COPY.app_accommodations_AccommodationsContent.the_easiest_way_to_get_around_austin_expect}<strong>$20–30</strong>{PAGE_COPY.app_accommodations_AccommodationsContent.to_downtown_about_a}<strong>{PAGE_COPY.app_accommodations_AccommodationsContent["15_20_minute"]}</strong>{PAGE_COPY.app_accommodations_AccommodationsContent.ride}</p>
                   <div className="mt-3 rounded-md bg-sage/5 p-3">
                     <p className="font-sans text-xs leading-relaxed text-charcoal-light">
-                      <strong className="text-sage">Tip:</strong> The rideshare
-                      pickup at AUS is on the second floor of the garage across
-                      from the terminal — follow the signs for &ldquo;Rideshare
-                      Pickup&rdquo; after exiting baggage claim.
-                    </p>
+                      <strong className="text-sage">{PAGE_COPY.app_accommodations_AccommodationsContent.tip}</strong>{PAGE_COPY.app_accommodations_AccommodationsContent.the_rideshare_pickup_at_aus_is_on_the_second_floor_of_t}</p>
                   </div>
                 </div>
 
                 {/* Rental Cars */}
                 <div className="rounded-lg border border-linen bg-ivory/50 p-6">
-                  <h3 className="font-serif text-lg text-charcoal">
-                    Rental Cars
-                  </h3>
-                  <p className="mt-2 font-sans text-sm leading-relaxed text-charcoal-light">
-                    Available on the arrival level across from the terminal. All
-                    major rental car companies are accessible without a shuttle.
-                  </p>
+                  <h3 className="font-serif text-lg text-charcoal">{PAGE_COPY.app_accommodations_AccommodationsContent.rental_cars}</h3>
+                  <p className="mt-2 font-sans text-sm leading-relaxed text-charcoal-light">{PAGE_COPY.app_accommodations_AccommodationsContent.available_on_the_arrival_level_across_from_the_terminal}</p>
                   <p className="mt-3 font-sans text-sm text-charcoal-light">
-                    <strong>Major companies:</strong> Hertz, Enterprise, National,
-                    Avis, Budget
-                  </p>
+                    <strong>{PAGE_COPY.app_accommodations_AccommodationsContent.major_companies}</strong>{PAGE_COPY.app_accommodations_AccommodationsContent.hertz_enterprise_national_avis_budget}</p>
                   <div className="mt-3 flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-sage" />
-                    <span className="font-sans text-xs text-warm-gray">
-                      Great if you want to explore Austin on your own
-                    </span>
+                    <span className="font-sans text-xs text-warm-gray">{PAGE_COPY.app_accommodations_AccommodationsContent.great_if_you_want_to_explore_austin_on_your_own}</span>
                   </div>
                 </div>
               </div>
@@ -311,17 +219,10 @@ export default function AccommodationsContent() {
         <div className="mx-auto max-w-6xl px-6">
           <FadeIn>
             <div className="text-center">
-              <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">
-                Recommended hotels
-              </p>
-              <h2 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl">
-                Where to Stay
-              </h2>
+              <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">{PAGE_COPY.app_accommodations_AccommodationsContent.recommended_hotels}</p>
+              <h2 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl">{PAGE_COPY.app_accommodations_AccommodationsContent.where_to_stay_6}</h2>
               <div className="divider-gold" />
-              <p className="mt-4 font-serif text-lg italic text-charcoal-light">
-                We recommend staying downtown — all of these hotels are a short
-                drive from both venues.
-              </p>
+              <p className="mt-4 font-serif text-lg italic text-charcoal-light">{PAGE_COPY.app_accommodations_AccommodationsContent.we_recommend_staying_downtown_all_of_these_hotels_are_a}</p>
             </div>
           </FadeIn>
 
@@ -375,9 +276,7 @@ export default function AccommodationsContent() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-auto pt-5 inline-flex items-center gap-2 font-sans text-xs font-medium uppercase tracking-[0.15em] text-sage transition-colors hover:text-gold"
-                    >
-                      View Hotel
-                      <ExternalLink className="h-3 w-3" />
+                    >{PAGE_COPY.app_accommodations_AccommodationsContent.view_hotel}<ExternalLink className="h-3 w-3" />
                     </a>
                   </div>
                 </motion.div>
@@ -392,9 +291,7 @@ export default function AccommodationsContent() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-outline inline-flex items-center gap-2"
-              >
-                Explore More Hotels
-                <ExternalLink className="h-3.5 w-3.5" />
+              >{PAGE_COPY.app_accommodations_AccommodationsContent.explore_more_hotels}<ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
           </FadeIn>

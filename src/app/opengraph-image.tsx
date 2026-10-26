@@ -1,3 +1,4 @@
+import { PAGE_COPY } from "@/config/page-copy";
 import { ImageResponse } from "next/og";
 import { WEDDING } from "@/lib/constants";
 
@@ -44,9 +45,7 @@ export default function OpenGraphImage() {
             fontFamily: "sans-serif",
             fontWeight: 600,
           }}
-        >
-          The wedding of
-        </div>
+        >{PAGE_COPY.app_opengraph_image.the_wedding_of}</div>
 
         <div
           style={{
@@ -76,7 +75,7 @@ export default function OpenGraphImage() {
             }}
           >
             <div style={{ width: 80, height: 1, background: "#FFFFFF", opacity: 0.7 }} />
-            <div style={{ fontSize: 56, fontStyle: "italic", color: "#FFFFFF" }}>&amp;</div>
+            <div style={{ fontSize: 56, fontStyle: "italic", color: "#FFFFFF" }}>{PAGE_COPY.app_opengraph_image.text}</div>
             <div style={{ width: 80, height: 1, background: "#FFFFFF", opacity: 0.7 }} />
           </div>
 
@@ -101,7 +100,7 @@ export default function OpenGraphImage() {
             opacity: 0.92,
           }}
         >
-          {WEDDING.dateDisplay} &middot; Austin, Texas
+          {WEDDING.dateDisplay}{PAGE_COPY.app_opengraph_image.text_1}{WEDDING.location}
         </div>
       </div>
     ),

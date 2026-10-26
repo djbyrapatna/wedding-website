@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TIMELINE, type MilestoneItem } from "./milestones";
-import gallery from "@/lib/gallery.generated.json";
+import gallery from "@/config/generated/gallery.json";
 
 const MILESTONES = TIMELINE.filter(
   (item): item is MilestoneItem => item.type === "milestone"

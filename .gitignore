@@ -54,3 +54,7 @@ __pycache__/
 
 # Claude Code personal settings (keep shared settings.json if/when added)
 .claude/settings.local.json
+
+# Project-local tooling caches and review notes
+.cache/
+.codex-work/

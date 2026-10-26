@@ -1,5 +1,8 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Clock, Navigation } from "lucide-react";
@@ -38,8 +41,7 @@ function VenueCard({ type, name, address, time, mapUrl, image, delay = 0 }: Venu
 
         <div className="flex flex-1 flex-col p-6 sm:p-8 md:p-10">
           {/* Top Accent */}
-          <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.3em] text-gold">
-            The {type}
+          <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.3em] text-gold">{PAGE_COPY.components_home_VenueCards.the}{type}
           </p>
 
           <h3 className="mt-3 font-serif text-2xl text-charcoal sm:text-3xl">
@@ -61,19 +63,12 @@ function VenueCard({ type, name, address, time, mapUrl, image, delay = 0 }: Venu
 
           {type === "ceremony" && (
             <div className="mt-6 rounded-md border border-gold/40 bg-gold/5 px-4 py-3">
-              <p className="font-sans text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal">
-                Dress code applies
-              </p>
-              <p className="mt-1.5 font-sans text-xs leading-relaxed text-charcoal-light">
-                The church has specific attire guidelines. Please review them on our{" "}
+              <p className="font-sans text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal">{PAGE_COPY.components_home_VenueCards.dress_code_applies}</p>
+              <p className="mt-1.5 font-sans text-xs leading-relaxed text-charcoal-light">{PAGE_COPY.components_home_VenueCards.the_church_has_specific_attire_guidelines_please_review}{" "}
                 <Link
                   href="/faq"
                   className="font-semibold text-sage underline decoration-gold/60 underline-offset-2 transition-colors hover:text-gold hover:decoration-gold"
-                >
-                  FAQ page
-                </Link>{" "}
-                before the ceremony.
-              </p>
+                >{PAGE_COPY.components_home_VenueCards.faq_page}</Link>{" "}{PAGE_COPY.components_home_VenueCards.before_the_ceremony}</p>
             </div>
           )}
 
@@ -83,9 +78,7 @@ function VenueCard({ type, name, address, time, mapUrl, image, delay = 0 }: Venu
             rel="noopener noreferrer"
             className="mt-auto inline-flex items-center gap-2 pt-6 font-sans text-xs font-medium uppercase tracking-[0.15em] text-sage transition-colors hover:text-gold"
           >
-            <Navigation className="h-3.5 w-3.5" />
-            Get Directions
-          </a>
+            <Navigation className="h-3.5 w-3.5" />{PAGE_COPY.components_home_VenueCards.get_directions}</a>
         </div>
       </motion.div>
     </FadeIn>
@@ -98,12 +91,8 @@ export default function VenueCards() {
       <div className="mx-auto max-w-5xl px-6">
         <FadeIn>
           <div className="text-center">
-            <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">
-              Join us
-            </p>
-            <h2 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl">
-              The Celebration
-            </h2>
+            <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">{PAGE_COPY.components_home_VenueCards.join_us}</p>
+            <h2 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl">{PAGE_COPY.components_home_VenueCards.the_celebration}</h2>
             <div className="divider-gold" />
           </div>
         </FadeIn>

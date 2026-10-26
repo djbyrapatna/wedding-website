@@ -1,5 +1,8 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -26,8 +29,8 @@ export default function Hero() {
       {/* Background Image with Parallax */}
       <motion.div className="absolute inset-0" style={{ y: imageY }}>
         <Image
-          src="/images/std_beach_bkgd.JPG"
-          alt="Lyndsey and Andrew"
+          src={PAGE_COPY.components_home_Hero.images_std_beach_bkgd_jpg}
+          alt={WEDDING.coupleName}
           fill
           className="object-cover"
           priority
@@ -50,9 +53,7 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="font-sans text-[11px] font-semibold uppercase tracking-[0.3em] sm:text-sm sm:tracking-[0.35em]"
           style={{ color: "#FFFFFF", textShadow: "0 1px 10px rgba(0,0,0,0.9)" }}
-        >
-          The wedding of
-        </motion.p>
+        >{PAGE_COPY.components_home_Hero.the_wedding_of}</motion.p>
 
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
@@ -74,9 +75,7 @@ export default function Hero() {
           <span
             className="font-serif text-2xl italic sm:text-4xl"
             style={{ color: "#FFFFFF", textShadow: "0 2px 15px rgba(0,0,0,0.8)" }}
-          >
-            &amp;
-          </span>
+          >{PAGE_COPY.components_home_Hero.text}</span>
           <div className="h-px w-8 sm:w-16" style={{ backgroundColor: "#FFFFFF" }} />
         </motion.div>
 
@@ -115,7 +114,7 @@ export default function Hero() {
           className="mt-2 font-sans text-xs font-semibold uppercase tracking-[0.25em] sm:mt-3 sm:text-base sm:tracking-[0.3em]"
           style={{ color: "#FFFFFF", textShadow: "0 1px 10px rgba(0,0,0,0.9)" }}
         >
-          Austin, Texas
+          {WEDDING.location}
         </motion.p>
       </motion.div>
 
@@ -134,9 +133,7 @@ export default function Hero() {
           <span
             className="font-sans text-[9px] uppercase tracking-[0.3em] sm:text-[10px]"
             style={{ color: "#FFFFFF", textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
-          >
-            Scroll
-          </span>
+          >{PAGE_COPY.components_home_Hero.scroll}</span>
           <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: "#FFFFFF", filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.8))" }} />
         </motion.div>
       </motion.div>

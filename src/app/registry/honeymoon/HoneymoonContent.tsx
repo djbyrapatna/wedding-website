@@ -1,5 +1,10 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
+import { WEDDING } from "@/config/wedding";
+
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, X, Check, Loader2 } from "lucide-react";
@@ -56,9 +61,9 @@ export default function HoneymoonContent({ raised }: { raised: RaisedTotals }) {
   return (
     <>
       <FluffHero
-        eyebrow="Your presence is the gift"
-        title="Honeymoon Fund"
-        subtitle="If you'd like to give a little something, help send us off — five nights in Mallorca, then on to Florence and Rome."
+        eyebrow={PAGE_COPY.app_registry_honeymoon_HoneymoonContent.your_presence_is_the_gift}
+        title={PAGE_COPY.app_registry_honeymoon_HoneymoonContent.honeymoon_fund}
+        subtitle={PAGE_COPY.app_registry_honeymoon_HoneymoonContent.if_you_d_like_to_give_a_little_something_help_send_us_o}
       />
 
       <section className="bg-ivory pb-20 pt-16 sm:pb-28 sm:pt-20">
@@ -75,8 +80,7 @@ export default function HoneymoonContent({ raised }: { raised: RaisedTotals }) {
             ))}
           </div>
 
-          <p className="mt-12 text-center font-serif text-base italic text-warm-gray">
-            Thank you for being part of our story. — Lyndsey &amp; Andrew
+          <p className="mt-12 text-center font-serif text-base italic text-warm-gray">{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.thank_you_for_being_part_of_our_story}{WEDDING.coupleName}
           </p>
         </div>
       </section>
@@ -111,9 +115,7 @@ function ExperienceCard({
       onClick={onContribute}
       className="inline-flex items-center gap-1.5 rounded-full bg-sage px-4 py-2 font-sans text-xs font-medium uppercase tracking-[0.12em] text-white transition-colors hover:bg-sage-dark"
     >
-      <Heart className="h-3.5 w-3.5" />
-      Contribute
-    </button>
+      <Heart className="h-3.5 w-3.5" />{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.contribute}</button>
   );
 
   return (
@@ -153,13 +155,11 @@ function ExperienceCard({
             <span className="font-medium text-charcoal">
               {funded ? (
                 <span className="inline-flex items-center gap-1.5 text-gold-dark">
-                  <Check className="h-4 w-4" /> Fully funded — thank you!
-                </span>
+                  <Check className="h-4 w-4" />{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.fully_funded_thank_you}</span>
               ) : (
                 <>
                   {formatUSD(raisedDollars)}{" "}
-                  <span className="text-warm-gray">
-                    of {formatUSD(exp.goalDollars!)}
+                  <span className="text-warm-gray">{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.of}{formatUSD(exp.goalDollars!)}
                   </span>
                 </>
               )}
@@ -261,11 +261,8 @@ function ContributeDialog({
 
         {status === "preview" ? (
           <div className="mt-6 rounded-lg bg-ivory p-5 text-center">
-            <p className="font-serif text-lg text-charcoal">Preview mode 💙</p>
-            <p className="mt-2 font-sans text-sm leading-relaxed text-charcoal-light">
-              Payments aren&apos;t switched on yet — this page is a private
-              preview. Once Stripe is connected, this button will take guests
-              to a secure checkout for{" "}
+            <p className="font-serif text-lg text-charcoal">{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.preview_mode}</p>
+            <p className="mt-2 font-sans text-sm leading-relaxed text-charcoal-light">{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.payments_aren_t_switched_on_yet_this_page_is_a_private_}{" "}
               <span className="font-medium text-charcoal">
                 {formatUSD(chosenDollars)}
               </span>
@@ -274,15 +271,11 @@ function ContributeDialog({
             <button
               onClick={onClose}
               className="mt-5 rounded-full bg-sage px-6 py-2.5 font-sans text-xs font-medium uppercase tracking-[0.12em] text-white transition-colors hover:bg-sage-dark"
-            >
-              Got it
-            </button>
+            >{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.got_it}</button>
           </div>
         ) : (
           <>
-            <p className="mt-4 font-sans text-sm text-charcoal-light">
-              Choose an amount to contribute:
-            </p>
+            <p className="mt-4 font-sans text-sm text-charcoal-light">{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.choose_an_amount_to_contribute}</p>
 
             <div className="mt-4 grid grid-cols-4 gap-2">
               {QUICK_AMOUNTS.map((amt) => {
@@ -327,9 +320,7 @@ function ContributeDialog({
                 className={`mt-2 font-sans text-xs ${
                   belowMin ? "text-red-600" : "text-warm-gray"
                 }`}
-              >
-                There&apos;s a $5 minimum.
-              </p>
+              >{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.there_s_a_5_minimum}</p>
             </div>
 
             {status === "error" && (
@@ -344,12 +335,10 @@ function ContributeDialog({
               {status === "loading" ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <>Contribute {valid ? formatUSD(chosenDollars) : ""}</>
+                <>{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.contribute_1}{valid ? formatUSD(chosenDollars) : ""}</>
               )}
             </button>
-            <p className="mt-3 text-center font-sans text-xs text-warm-gray">
-              Secure checkout powered by Stripe.
-            </p>
+            <p className="mt-3 text-center font-sans text-xs text-warm-gray">{PAGE_COPY.app_registry_honeymoon_HoneymoonContent.secure_checkout_powered_by_stripe}</p>
           </>
         )}
       </motion.div>

@@ -1,5 +1,8 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import Link from "next/link";
 import { motion } from "framer-motion";
 import FadeIn from "@/components/animations/FadeIn";
@@ -10,20 +13,13 @@ export default function RsvpCta() {
     <section className="section-padding bg-sage">
       <div className="mx-auto max-w-3xl px-6 text-center">
         <FadeIn>
-          <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-cream/80">
-            We hope you can make it
-          </p>
-          <h2 className="mt-3 font-serif text-3xl text-cream sm:text-4xl md:text-5xl">
-            Will You Join Us?
-          </h2>
+          <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-cream/80">{PAGE_COPY.components_home_RsvpCta.we_hope_you_can_make_it}</p>
+          <h2 className="mt-3 font-serif text-3xl text-cream sm:text-4xl md:text-5xl">{PAGE_COPY.components_home_RsvpCta.will_you_join_us}</h2>
           <div className="mx-auto mt-6 h-px w-16 bg-gradient-to-r from-transparent via-gold to-transparent" />
         </FadeIn>
 
         <FadeIn delay={0.2}>
-          <p className="mt-8 font-serif text-lg italic leading-relaxed text-cream/80">
-            Your presence would mean the world to us. Please let us know if
-            you&apos;ll be celebrating with us by responding to our invitation.
-          </p>
+          <p className="mt-8 font-serif text-lg italic leading-relaxed text-cream/80">{PAGE_COPY.components_home_RsvpCta.your_presence_would_mean_the_world_to_us_please_let_us_}</p>
         </FadeIn>
 
         <FadeIn delay={0.35}>
@@ -32,9 +28,7 @@ export default function RsvpCta() {
               <Link
                 href="/rsvp"
                 className="btn-light"
-              >
-                RSVP Now
-              </Link>
+              >{PAGE_COPY.components_home_RsvpCta.rsvp_now}</Link>
             </motion.div>
           </MagneticButton>
         </FadeIn>

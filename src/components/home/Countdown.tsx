@@ -1,5 +1,8 @@
 "use client";
 
+import { PAGE_COPY } from "@/config/page-copy";
+
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WEDDING } from "@/lib/constants";
@@ -82,12 +85,8 @@ export default function Countdown() {
     <section className="section-padding bg-white" aria-label="Wedding countdown timer">
       <div className="mx-auto max-w-4xl px-6 text-center" aria-live="polite" aria-atomic="true">
         <FadeIn>
-          <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">
-            Counting down to
-          </p>
-          <h2 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl">
-            Our Wedding Day
-          </h2>
+          <p className="font-sans text-xs font-medium uppercase tracking-[0.3em] text-warm-gray">{PAGE_COPY.components_home_Countdown.counting_down_to}</p>
+          <h2 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl">{PAGE_COPY.components_home_Countdown.our_wedding_day}</h2>
           <div className="divider-gold" />
         </FadeIn>
 
