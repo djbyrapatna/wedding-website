@@ -1,29 +1,23 @@
+import { requireAdmin } from "@/lib/server/admin-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getRsvpOpen, setRsvpOpen } from "@/lib/settings";
 
-// Admin password HARDCODED to match the other admin routes (env var ignored).
-const ADMIN_PASSWORD = "dumptruck";
 
 // Read fresh — the toggle must always reflect (and set) live state.
 export const dynamic = "force-dynamic";
 
-function authorized(request: NextRequest): boolean {
-  return request.headers.get("x-admin-password")?.trim() === ADMIN_PASSWORD;
-}
 
 // GET — current site settings for the admin dashboard.
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdmin(request);
+  if (auth.response) return auth.response;
   return NextResponse.json({ rsvp_open: await getRsvpOpen() });
 }
 
 // POST — update a setting. Body: { rsvp_open: boolean }
 export async function POST(request: NextRequest) {
-  if (!authorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdmin(request, true);
+  if (auth.response) return auth.response;
 
   let body: Partial<{ rsvp_open: boolean }>;
   try {

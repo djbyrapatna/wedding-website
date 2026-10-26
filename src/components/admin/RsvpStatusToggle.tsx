@@ -1,18 +1,21 @@
 "use client";
 
+import { useAdmin, adminFetch } from "./AdminAuthGate";
+
 import { useEffect, useState } from "react";
 import { Loader2, Lock, Unlock } from "lucide-react";
 
 // Admin control to open/close the public RSVP form. Reads the current state on
 // mount and flips it via /api/admin/settings. Closing shows a confirmation so
 // it can't happen with a stray click.
-export default function RsvpStatusToggle({ password }: { password: string }) {
+export default function RsvpStatusToggle() {
+  const { canEdit } = useAdmin();
   const [open, setOpen] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
-    fetch("/api/admin/settings", { headers: { "x-admin-password": password } })
+    adminFetch("/api/admin/settings")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
         if (active) setOpen(!!d.rsvp_open);
@@ -21,13 +24,13 @@ export default function RsvpStatusToggle({ password }: { password: string }) {
       .catch(() => {
         if (active) setOpen(true);
       });
-    return () => {
+  return () => {
       active = false;
     };
-  }, [password]);
+  }, []);
 
   const toggle = async () => {
-    if (open === null || saving) return;
+    if (!canEdit || open === null || saving) return;
     const next = !open;
 
     if (
@@ -41,11 +44,10 @@ export default function RsvpStatusToggle({ password }: { password: string }) {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/settings", {
+      const res = await adminFetch("/api/admin/settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-admin-password": password,
         },
         body: JSON.stringify({ rsvp_open: next }),
       });
@@ -60,6 +62,8 @@ export default function RsvpStatusToggle({ password }: { password: string }) {
       setSaving(false);
     }
   };
+
+  if (!canEdit) return <p className="mt-8 text-sm">RSVP status: {open === null ? "Loading…" : open ? "Open" : "Closed"}</p>;
 
   return (
     <div className="mt-8 flex flex-col gap-4 rounded-lg border border-linen bg-white p-5 sm:flex-row sm:items-center sm:justify-between">

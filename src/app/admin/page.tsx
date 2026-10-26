@@ -1,3 +1,4 @@
+import AdminAuthGate from "@/components/admin/AdminAuthGate";
 import { pageMetadata } from "@/config/metadata";
 import type { Metadata } from "next";
 import AdminDashboard from "./AdminDashboard";
@@ -9,5 +10,5 @@ export const metadata: Metadata = pageMetadata('Admin', 'Wedding RSVP admin dash
 export const dynamic = "force-dynamic";
 
 export default function AdminPage() {
-  return <AdminDashboard />;
+  return <AdminAuthGate><AdminDashboard /></AdminAuthGate>;
 }

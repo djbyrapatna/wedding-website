@@ -11,7 +11,9 @@
     "import-guests": "node --env-file=.env.local scripts/import-guests.mjs",
     "export-guests": "node --env-file=.env.local scripts/export-guests.mjs",
     "sync-gallery": "node scripts/sync-gallery.mjs",
-    "sync-fluff": "node scripts/sync-fluff.mjs"
+    "sync-fluff": "node scripts/sync-fluff.mjs",
+    "bootstrap-admins": "node --env-file=.env.local scripts/bootstrap-admins.mjs",
+    "test:access": "node scripts/verify-access.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -32,6 +34,7 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
     "@types/react": "^18",

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useAdmin, adminFetch } from "@/components/admin/AdminAuthGate";
+import AccountsTab from "@/components/admin/AccountsTab";
+
+import { useState, useEffect } from "react";
 import {
-  Lock,
-  Loader2,
   Download,
   Users,
   CheckCircle2,
@@ -21,7 +22,7 @@ import ChecklistTab from "@/components/admin/ChecklistTab";
 import SeatingTab from "@/components/admin/SeatingTab";
 import RsvpStatusToggle from "@/components/admin/RsvpStatusToggle";
 
-type Tab = "rsvps" | "checklist" | "seating";
+type Tab = "rsvps" | "checklist" | "seating" | "accounts";
 
 type AdminData = {
   households: Household[];
@@ -37,42 +38,13 @@ const MEAL_LABELS: Record<string, string> = Object.fromEntries(
 );
 
 export default function AdminDashboard() {
-  const [password, setPassword] = useState("");
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { canEdit } = useAdmin();
   const [data, setData] = useState<AdminData | null>(null);
+  const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("rsvps");
-
-  const login = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/admin/rsvps", {
-        headers: { "x-admin-password": password.trim() },
-      });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          setError("Incorrect password.");
-        } else {
-          const body = await res.json().catch(() => ({}));
-          setError(
-            `Server error (${res.status}): ${body.detail ?? body.error ?? "unknown"}`
-          );
-        }
-        return;
-      }
-
-      const json = await res.json();
-      setData(json);
-      setAuthenticated(true);
-    } catch {
-      setError("Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    adminFetch("/api/admin/rsvps").then(r => r.json()).then(setData).catch(e => setError(e.message));
+  }, []);
 
   // CSV columns mirror the database (guests + rsvps) so the export is easy to
   // read against the schema and edit. Imported guest fields first, then the
@@ -154,49 +126,6 @@ export default function AdminDashboard() {
     URL.revokeObjectURL(url);
   };
 
-  if (!authenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-ivory px-6">
-        <div className="w-full max-w-sm text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sage/10">
-            <Lock className="h-6 w-6 text-sage" />
-          </div>
-          <h1 className="mt-5 font-serif text-3xl text-charcoal">Admin Access</h1>
-          <p className="mt-2 font-sans text-sm text-charcoal-light">
-            Enter the admin password to view RSVPs.
-          </p>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              login();
-            }}
-            className="mt-6"
-          >
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="w-full rounded-lg border border-linen bg-white px-4 py-3 text-center font-sans text-sm outline-none focus:border-sage focus:ring-2 focus:ring-sage/20"
-              autoFocus
-            />
-            {error && (
-              <p className="mt-2 font-sans text-sm text-red-500">{error}</p>
-            )}
-            <button type="submit" className="btn-primary mt-4 w-full" disabled={loading}>
-              {loading ? (
-                <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-              ) : (
-                "Sign In"
-              )}
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-ivory pb-20 pt-24 sm:pt-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -222,14 +151,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {data?.dbError && (
-          <div className="mt-4 rounded-lg border border-gold/30 bg-gold/5 px-4 py-3 font-sans text-sm text-charcoal-light">
-            Couldn&apos;t reach the database, so the RSVP list is empty and the
-            checklist is saving to this device only. Everything else works — once
-            Supabase is connected it&apos;ll sync automatically.
-          </div>
-        )}
-
+        {error && <p role="alert" className="mt-4">{error}</p>}
         <div className="mt-6 flex gap-1 border-b border-linen">
           <TabButton
             active={tab === "rsvps"}
@@ -251,21 +173,23 @@ export default function AdminDashboard() {
           />
         </div>
 
-        {tab === "checklist" ? (
+        {canEdit && <button className="btn-outline mt-4" onClick={() => setTab("accounts")}>Accounts</button>}
+
+        {tab === "accounts" && canEdit ? <AccountsTab /> : tab === "checklist" ? (
           <div className="mt-8">
-            <ChecklistTab password={password} />
+            <ChecklistTab />
           </div>
         ) : tab === "seating" ? (
           <div className="mt-8">
             <SeatingTab
-              password={password}
+             
               guests={data?.guests ?? []}
               households={data?.households ?? []}
               rsvps={data?.rsvps ?? []}
             />
           </div>
         ) : (
-          <RsvpPanel data={data} password={password} />
+          <RsvpPanel data={data} />
         )}
       </div>
     </div>
@@ -274,10 +198,8 @@ export default function AdminDashboard() {
 
 function RsvpPanel({
   data,
-  password,
 }: {
   data: AdminData | null;
-  password: string;
 }) {
   const guests = data?.guests ?? [];
   const households = data?.households ?? [];
@@ -377,7 +299,7 @@ function RsvpPanel({
 
   return (
     <>
-      <RsvpStatusToggle password={password} />
+      <RsvpStatusToggle />
 
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard
