@@ -58,3 +58,6 @@ __pycache__/
 # Project-local tooling caches and review notes
 .cache/
 .codex-work/
+
+# Downloaded invitation codes contain private guest access data
+invitation-codes*.csv

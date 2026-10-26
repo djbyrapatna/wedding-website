@@ -102,10 +102,34 @@ export interface SeatingAssignment {
   updated_at: string;
 }
 
+export interface AdminAccountRow {
+  user_id: string;
+  email: string;
+  role: "owner" | "viewer";
+  active: boolean;
+  created_at: string;
+}
+
+export interface HouseholdAccess {
+  household_id: number;
+  code_hash: string;
+  updated_at: string;
+}
+
 // Supabase Database type for createClient generic
 export interface Database {
   public: {
     Tables: {
+      admin_accounts: {
+        Row: AdminAccountRow;
+        Insert: Omit<AdminAccountRow, "created_at"> & { created_at?: string };
+        Update: Partial<Omit<AdminAccountRow, "user_id">>;
+      };
+      household_access: {
+        Row: HouseholdAccess;
+        Insert: Omit<HouseholdAccess, "updated_at"> & { updated_at?: string };
+        Update: Partial<Omit<HouseholdAccess, "household_id">>;
+      };
       households: {
         Row: Household;
         Insert: Omit<Household, "created_at"> & { created_at?: string };

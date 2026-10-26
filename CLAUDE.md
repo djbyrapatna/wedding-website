@@ -1,3 +1,8 @@
+> Historical design brief. Current implementation uses households/guests/RSVPs,
+> individual owner/viewer accounts, and name/code invitation sessions. Read
+> README.md and docs/ before changing setup, schemas, or authentication; the
+> original proposed schema below has been superseded.
+
 # Andrew & Lyndsey Wedding Website
 
 ## PROJECT OVERVIEW

@@ -9,7 +9,7 @@ import {
   SHARED_SIDES,
   STARTER,
 } from "@/lib/constants";
-import type { GuestRsvpData } from "./RsvpForm";
+import type { GuestRsvpData } from "@/lib/rsvp/types";
 
 interface StepMealsProps {
   guests: GuestRsvpData[]; // already filtered to attending, non-infant guests
@@ -18,10 +18,12 @@ interface StepMealsProps {
   onBack: () => void;
 }
 
-const isPlaceholder = (g: GuestRsvpData) => g.name_status === "PLACEHOLDER_UNKNOWN";
+const isPlaceholder = (g: GuestRsvpData) =>
+  g.name_status === "PLACEHOLDER_UNKNOWN";
 
 // Kids' meals are locked to a single option for now — no choice, just show it.
-const KIDS_FIXED_MEAL = KIDS_MEALS.find((m) => m.value === "Tenders") ?? KIDS_MEALS[0];
+const KIDS_FIXED_MEAL =
+  KIDS_MEALS.find((m) => m.value === "Tenders") ?? KIDS_MEALS[0];
 
 // Whether to show the kids' menu for a guest. Placeholder (plus-one) seats use
 // the adult/child choice made on this step; everyone else uses their guest_type.
@@ -60,11 +62,13 @@ export default function StepMeals({
     // If anyone picked the alternative meal, make sure they described it.
     if (
       guests.some(
-        (g) => g.meal_preference === ALTERNATIVE_MEAL.value && !g.dietary_notes.trim()
+        (g) =>
+          g.meal_preference === ALTERNATIVE_MEAL.value &&
+          !g.dietary_notes.trim(),
       )
     ) {
       setError(
-        "Please describe the alternative meal / dietary need in the box under that guest."
+        "Please describe the alternative meal / dietary need in the box under that guest.",
       );
       return;
     }
@@ -120,7 +124,7 @@ export default function StepMeals({
                           "px-3 py-1.5 font-sans text-xs font-medium capitalize transition-colors",
                           guest.plus_one_type === t
                             ? "bg-sage text-white"
-                            : "bg-white text-charcoal-light hover:bg-ivory"
+                            : "bg-white text-charcoal-light hover:bg-ivory",
                         )}
                       >
                         {t}
@@ -147,13 +151,15 @@ export default function StepMeals({
                       <button
                         key={meal.value}
                         onClick={() =>
-                          updateGuest(guest.guest_id, { meal_preference: meal.value })
+                          updateGuest(guest.guest_id, {
+                            meal_preference: meal.value,
+                          })
                         }
                         className={cn(
                           "rounded-lg border p-4 text-left transition-all",
                           guest.meal_preference === meal.value
                             ? "border-gold bg-gold/5 shadow-gold"
-                            : "border-linen bg-white hover:border-gold/40"
+                            : "border-linen bg-white hover:border-gold/40",
                         )}
                       >
                         <span className="block font-sans text-sm font-medium text-charcoal">
@@ -171,17 +177,23 @@ export default function StepMeals({
                   {/* Third option: alternative meal (smaller, full width). */}
                   <button
                     onClick={() =>
-                      updateGuest(guest.guest_id, { meal_preference: ALTERNATIVE_MEAL.value })
+                      updateGuest(guest.guest_id, {
+                        meal_preference: ALTERNATIVE_MEAL.value,
+                      })
                     }
                     className={cn(
                       "mt-2.5 w-full rounded-lg border px-4 py-2.5 text-left font-sans text-xs transition-all",
                       guest.meal_preference === ALTERNATIVE_MEAL.value
                         ? "border-gold bg-gold/5 text-charcoal shadow-gold"
-                        : "border-dashed border-linen bg-white text-warm-gray hover:border-gold/40"
+                        : "border-dashed border-linen bg-white text-warm-gray hover:border-gold/40",
                     )}
                   >
-                    <span className="font-medium">{ALTERNATIVE_MEAL.label}</span>
-                    <span className="ml-1">— {ALTERNATIVE_MEAL.description}</span>
+                    <span className="font-medium">
+                      {ALTERNATIVE_MEAL.label}
+                    </span>
+                    <span className="ml-1">
+                      — {ALTERNATIVE_MEAL.description}
+                    </span>
                   </button>
                 </>
               )}
@@ -202,7 +214,9 @@ export default function StepMeals({
       </div>
 
       {error && (
-        <p className="mt-4 text-center font-sans text-sm text-red-500">{error}</p>
+        <p className="mt-4 text-center font-sans text-sm text-red-500">
+          {error}
+        </p>
       )}
 
       <div className="mt-10 flex items-center justify-center gap-4">

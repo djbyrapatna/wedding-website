@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { GuestRsvpData } from "./RsvpForm";
+import type { GuestRsvpData } from "@/lib/rsvp/types";
 
 interface StepRsvpProps {
   guests: GuestRsvpData[];
@@ -20,7 +20,8 @@ export default function StepRsvp({
 }: StepRsvpProps) {
   const [error, setError] = useState("");
 
-  const isPlaceholder = (g: GuestRsvpData) => g.name_status === "PLACEHOLDER_UNKNOWN";
+  const isPlaceholder = (g: GuestRsvpData) =>
+    g.name_status === "PLACEHOLDER_UNKNOWN";
 
   const handleContinue = () => {
     // Every guest must have an explicit answer.
@@ -31,10 +32,15 @@ export default function StepRsvp({
     // An attending plus-one needs a name.
     if (
       guests.some(
-        (g) => isPlaceholder(g) && g.attending_wedding === true && !g.plus_one_name.trim()
+        (g) =>
+          isPlaceholder(g) &&
+          g.attending_wedding === true &&
+          !g.plus_one_name.trim(),
       )
     ) {
-      setError("Please enter a name for your guest, or mark them as not attending.");
+      setError(
+        "Please enter a name for your guest, or mark them as not attending.",
+      );
       return;
     }
     setError("");
@@ -67,24 +73,30 @@ export default function StepRsvp({
                   type="text"
                   value={guest.plus_one_name}
                   onChange={(e) =>
-                    updateGuest(guest.guest_id, { plus_one_name: e.target.value })
+                    updateGuest(guest.guest_id, {
+                      plus_one_name: e.target.value,
+                    })
                   }
                   placeholder="First and last name"
                   className="mt-1.5 w-full rounded-lg border border-linen bg-white px-4 py-2.5 font-serif text-lg text-charcoal outline-none transition-colors placeholder:font-sans placeholder:text-base placeholder:text-warm-gray/60 focus:border-sage focus:ring-2 focus:ring-sage/20"
                 />
               </div>
             ) : (
-              <p className="font-serif text-lg text-charcoal">{guest.display_name}</p>
+              <p className="font-serif text-lg text-charcoal">
+                {guest.display_name}
+              </p>
             )}
 
             <div className="mt-3 flex gap-2 sm:gap-3">
               <button
-                onClick={() => updateGuest(guest.guest_id, { attending_wedding: true })}
+                onClick={() =>
+                  updateGuest(guest.guest_id, { attending_wedding: true })
+                }
                 className={cn(
                   "flex flex-1 items-center justify-center gap-1.5 rounded-lg border py-3 font-sans text-xs font-medium transition-all sm:gap-2 sm:text-sm",
                   guest.attending_wedding === true
                     ? "border-sage bg-sage text-white"
-                    : "border-linen bg-white text-charcoal-light hover:border-sage/50"
+                    : "border-linen bg-white text-charcoal-light hover:border-sage/50",
                 )}
               >
                 <Check className="h-4 w-4 shrink-0" />
@@ -92,12 +104,14 @@ export default function StepRsvp({
                 <span className="hidden sm:inline">Joyfully Accepts</span>
               </button>
               <button
-                onClick={() => updateGuest(guest.guest_id, { attending_wedding: false })}
+                onClick={() =>
+                  updateGuest(guest.guest_id, { attending_wedding: false })
+                }
                 className={cn(
                   "flex flex-1 items-center justify-center gap-1.5 rounded-lg border py-3 font-sans text-xs font-medium transition-all sm:gap-2 sm:text-sm",
                   guest.attending_wedding === false
                     ? "border-charcoal-light bg-charcoal-light text-white"
-                    : "border-linen bg-white text-charcoal-light hover:border-charcoal-light/50"
+                    : "border-linen bg-white text-charcoal-light hover:border-charcoal-light/50",
                 )}
               >
                 <X className="h-4 w-4 shrink-0" />
@@ -110,7 +124,9 @@ export default function StepRsvp({
       </div>
 
       {error && (
-        <p className="mt-4 text-center font-sans text-sm text-red-500">{error}</p>
+        <p className="mt-4 text-center font-sans text-sm text-red-500">
+          {error}
+        </p>
       )}
 
       <div className="mt-10 flex items-center justify-center gap-4">

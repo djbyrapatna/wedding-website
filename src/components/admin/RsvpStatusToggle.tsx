@@ -1,8 +1,8 @@
 "use client";
 
-import { useAdmin, adminFetch } from "./AdminAuthGate";
+import { useAdmin } from "./AdminAuthGate";
 
-import { useEffect, useState } from "react";
+import { useRsvpSettings } from "@/hooks/useRsvpSettings";
 import { Loader2, Lock, Unlock } from "lucide-react";
 
 // Admin control to open/close the public RSVP form. Reads the current state on
@@ -10,24 +10,7 @@ import { Loader2, Lock, Unlock } from "lucide-react";
 // it can't happen with a stray click.
 export default function RsvpStatusToggle() {
   const { canEdit } = useAdmin();
-  const [open, setOpen] = useState<boolean | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    adminFetch("/api/admin/settings")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => {
-        if (active) setOpen(!!d.rsvp_open);
-      })
-      // On any error, assume open (matches the server's fail-open default).
-      .catch(() => {
-        if (active) setOpen(true);
-      });
-  return () => {
-      active = false;
-    };
-  }, []);
+  const { open, saving, error, save } = useRsvpSettings();
 
   const toggle = async () => {
     if (!canEdit || open === null || saving) return;
@@ -36,34 +19,27 @@ export default function RsvpStatusToggle() {
     if (
       !next &&
       !window.confirm(
-        "Close RSVPs? Guests will see a “RSVPs are closed” message and can no longer submit or edit their response until you reopen it."
+        "Close RSVPs? Guests will see a “RSVPs are closed” message and can no longer submit or edit their response until you reopen it.",
       )
     ) {
       return;
     }
 
-    setSaving(true);
-    try {
-      const res = await adminFetch("/api/admin/settings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rsvp_open: next }),
-      });
-      if (res.ok) {
-        setOpen(next);
-      } else {
-        alert("Couldn't update RSVP status. Please try again.");
-      }
-    } catch {
-      alert("Couldn't update RSVP status. Please try again.");
-    } finally {
-      setSaving(false);
-    }
+    await save(next);
   };
 
-  if (!canEdit) return <p className="mt-8 text-sm">RSVP status: {open === null ? "Loading…" : open ? "Open" : "Closed"}</p>;
+  if (error)
+    return (
+      <p role="alert" className="mt-8 text-sm">
+        {error}
+      </p>
+    );
+  if (!canEdit)
+    return (
+      <p className="mt-8 text-sm">
+        RSVP status: {open === null ? "Loading…" : open ? "Open" : "Closed"}
+      </p>
+    );
 
   return (
     <div className="mt-8 flex flex-col gap-4 rounded-lg border border-linen bg-white p-5 sm:flex-row sm:items-center sm:justify-between">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, X, Wine } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { GuestRsvpData } from "./RsvpForm";
+import type { GuestRsvpData } from "@/lib/rsvp/types";
 
 interface StepRehearsalProps {
   guests: GuestRsvpData[];
@@ -60,24 +60,28 @@ export default function StepRehearsal({
             <p className="font-serif text-lg text-charcoal">{nameFor(guest)}</p>
             <div className="mt-3 flex gap-2 sm:gap-3">
               <button
-                onClick={() => updateGuest(guest.guest_id, { attending_rehearsal: true })}
+                onClick={() =>
+                  updateGuest(guest.guest_id, { attending_rehearsal: true })
+                }
                 className={cn(
                   "flex flex-1 items-center justify-center gap-1.5 rounded-lg border py-3 font-sans text-xs font-medium transition-all sm:gap-2 sm:text-sm",
                   guest.attending_rehearsal === true
                     ? "border-sage bg-sage text-white"
-                    : "border-linen bg-white text-charcoal-light hover:border-sage/50"
+                    : "border-linen bg-white text-charcoal-light hover:border-sage/50",
                 )}
               >
                 <Check className="h-4 w-4 shrink-0" />
                 Attending
               </button>
               <button
-                onClick={() => updateGuest(guest.guest_id, { attending_rehearsal: false })}
+                onClick={() =>
+                  updateGuest(guest.guest_id, { attending_rehearsal: false })
+                }
                 className={cn(
                   "flex flex-1 items-center justify-center gap-1.5 rounded-lg border py-3 font-sans text-xs font-medium transition-all sm:gap-2 sm:text-sm",
                   guest.attending_rehearsal === false
                     ? "border-charcoal-light bg-charcoal-light text-white"
-                    : "border-linen bg-white text-charcoal-light hover:border-charcoal-light/50"
+                    : "border-linen bg-white text-charcoal-light hover:border-charcoal-light/50",
                 )}
               >
                 <X className="h-4 w-4 shrink-0" />
@@ -89,7 +93,9 @@ export default function StepRehearsal({
       </div>
 
       {error && (
-        <p className="mt-4 text-center font-sans text-sm text-red-500">{error}</p>
+        <p className="mt-4 text-center font-sans text-sm text-red-500">
+          {error}
+        </p>
       )}
 
       <div className="mt-10 flex items-center justify-center gap-4">
