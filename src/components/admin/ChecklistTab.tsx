@@ -1,5 +1,7 @@
 "use client";
 
+import { useAdmin, adminFetch } from "./AdminAuthGate";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -44,8 +46,10 @@ function saveLocal(state: StateMap) {
   }
 }
 
-export default function ChecklistTab({ password }: { password: string }) {
+export default function ChecklistTab() {
+  const { canEdit } = useAdmin();
   const [state, setState] = useState<StateMap>({});
+  const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(true);
   const [demo, setDemo] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -60,9 +64,7 @@ export default function ChecklistTab({ password }: { password: string }) {
     let active = true;
     (async () => {
       try {
-        const res = await fetch("/api/admin/checklist", {
-          headers: { "x-admin-password": password },
-        });
+        const res = await adminFetch("/api/admin/checklist");
         const json = await res.json();
         if (!active) return;
 
@@ -72,12 +74,8 @@ export default function ChecklistTab({ password }: { password: string }) {
         } else {
           setState(json.items ?? {});
         }
-      } catch {
-        // Network fell over — still let them work locally.
-        if (active) {
-          setDemo(true);
-          setState(loadLocal());
-        }
+      } catch (e) {
+        if (active) setLoadError(e instanceof Error ? e.message : "Unable to load checklist.");
       } finally {
         if (active) setLoading(false);
       }
@@ -85,7 +83,7 @@ export default function ChecklistTab({ password }: { password: string }) {
     return () => {
       active = false;
     };
-  }, [password]);
+  }, []);
 
   const itemState = useCallback(
     (id: string): ItemState => state[id] ?? { checked: false, notes: "" },
@@ -95,6 +93,7 @@ export default function ChecklistTab({ password }: { password: string }) {
   // Persist a single item: optimistic local update, then sync.
   const persist = useCallback(
     (id: string, next: ItemState) => {
+      if (!canEdit) return;
       setState((prev) => {
         const updated = { ...prev, [id]: next };
         if (demo) saveLocal(updated);
@@ -102,23 +101,20 @@ export default function ChecklistTab({ password }: { password: string }) {
       });
 
       if (!demo) {
-        fetch("/api/admin/checklist", {
+        adminFetch("/api/admin/checklist", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-admin-password": password,
           },
           body: JSON.stringify({
             item_id: id,
             checked: next.checked,
             notes: next.notes,
           }),
-        }).catch(() => {
-          /* best-effort; local state already updated */
-        });
+        }).catch((e) => setLoadError(e instanceof Error ? e.message : "Unable to save checklist."));
       }
     },
-    [demo, password]
+    [demo, canEdit]
   );
 
   const toggle = useCallback(
@@ -192,6 +188,7 @@ export default function ChecklistTab({ password }: { password: string }) {
     [filteredSections]
   );
 
+  if (loadError) return <p role="alert">{loadError}</p>;
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -471,6 +468,7 @@ function ChecklistRow({
   activeTags: Set<string>;
   onTagClick: (tag: string) => void;
 }) {
+  const { canEdit } = useAdmin();
   const { tag, text: label } = parseTag(text);
   const [noteOpen, setNoteOpen] = useState(false);
   const [draft, setDraft] = useState(state.notes);
@@ -486,7 +484,7 @@ function ChecklistRow({
     <li className="px-4 py-2.5 transition-colors hover:bg-ivory/40 sm:px-5">
       <div className="flex items-start gap-2.5">
         <button
-          onClick={onToggle}
+          disabled={!canEdit} onClick={onToggle}
           role="checkbox"
           aria-checked={state.checked}
           aria-label={state.checked ? "Mark as not done" : "Mark as done"}
@@ -548,7 +546,7 @@ function ChecklistRow({
 
           {/* Note editor */}
           {noteOpen && (
-            <textarea
+            <textarea readOnly={!canEdit}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onBlur={() => {

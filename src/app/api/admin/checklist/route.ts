@@ -1,35 +1,25 @@
+import { requireAdmin } from "@/lib/server/admin-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-// Admin password HARDCODED to match src/app/api/admin/rsvps (env var ignored).
-const ADMIN_PASSWORD = "dumptruck";
 
 type ItemState = { checked: boolean; notes: string };
 type StateMap = Record<string, ItemState>;
 
-function authorized(request: NextRequest): boolean {
-  return request.headers.get("x-admin-password")?.trim() === ADMIN_PASSWORD;
-}
 
 // GET — return the saved state for every touched checklist item.
-// In demo mode (no Supabase) returns an empty map; the client falls back to
-// localStorage so the feature still works in local development.
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // No DB, query error, or unreachable Supabase all fall back to demo mode so
-  // the client persists checklist state in localStorage instead of crashing.
+  const auth = await requireAdmin(request);
+  if (auth.response) return auth.response;
   if (!supabase) {
-    return NextResponse.json({ items: {}, demo: true });
+    return NextResponse.json({ error: "Unable to load checklist." }, { status: 503 });
   }
 
   try {
-    const { data, error } = await supabase.from("checklist_items").select("*");
+    const { data, error } = await supabase!.from("checklist_items").select("*");
 
     if (error) {
-      return NextResponse.json({ items: {}, demo: true });
+      return NextResponse.json({ error: "Unable to load checklist." }, { status: 503 });
     }
 
     const items: StateMap = {};
@@ -39,16 +29,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ items });
   } catch {
-    return NextResponse.json({ items: {}, demo: true });
+    return NextResponse.json({ error: "Unable to load checklist." }, { status: 503 });
   }
 }
 
 // POST — upsert the state for a single item.
 // Body: { item_id: string, checked: boolean, notes: string }
 export async function POST(request: NextRequest) {
-  if (!authorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdmin(request, true);
+  if (auth.response) return auth.response;
 
   let body: Partial<{ item_id: string; checked: boolean; notes: string }>;
   try {
@@ -61,15 +50,12 @@ export async function POST(request: NextRequest) {
   if (typeof item_id !== "string" || typeof checked !== "boolean") {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-
-  // Demo mode: nothing to persist server-side; the client keeps state in
-  // localStorage. Report success so the UI behaves identically.
   if (!supabase) {
-    return NextResponse.json({ ok: true, demo: true });
+    return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
   }
 
   try {
-    const { error } = await supabase.from("checklist_items").upsert(
+    const { error } = await supabase!.from("checklist_items").upsert(
       {
         item_id,
         checked,
@@ -80,12 +66,11 @@ export async function POST(request: NextRequest) {
     );
 
     if (error) {
-      return NextResponse.json({ ok: true, demo: true });
+      return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
     }
 
     return NextResponse.json({ ok: true });
   } catch {
-    // Supabase unreachable — report success; the client keeps localStorage.
-    return NextResponse.json({ ok: true, demo: true });
+    return NextResponse.json({ error: "Unable to save changes." }, { status: 503 });
   }
 }

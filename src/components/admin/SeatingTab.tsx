@@ -1,5 +1,7 @@
 "use client";
 
+import { useAdmin, adminFetch } from "./AdminAuthGate";
+
 import {
   useCallback,
   useEffect,
@@ -101,18 +103,18 @@ function loadLocal(): { tables: PersistedTable[]; assignments: Record<string, st
 // ------------------------------------------------------------------
 
 export default function SeatingTab({
-  password,
   guests,
   households,
   rsvps,
 }: {
-  password: string;
   guests: Guest[];
   households: Household[];
   rsvps: Rsvp[];
 }) {
+  const { canEdit } = useAdmin();
   const [tables, setTables] = useState<PersistedTable[]>([]);
   const [assignments, setAssignments] = useState<Record<string, string>>({});
+  const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(true);
   const [demo, setDemo] = useState(false);
 
@@ -202,9 +204,7 @@ export default function SeatingTab({
     let active = true;
     (async () => {
       try {
-        const res = await fetch("/api/admin/seating", {
-          headers: { "x-admin-password": password },
-        });
+        const res = await adminFetch("/api/admin/seating");
         const json = await res.json();
         if (!active) return;
 
@@ -221,15 +221,8 @@ export default function SeatingTab({
           for (const row of json.assignments ?? []) a[row.guest_id] = row.table_id;
           setAssignments(a);
         }
-      } catch {
-        if (active) {
-          setDemo(true);
-          const local = loadLocal();
-          if (local) {
-            setTables(local.tables ?? []);
-            setAssignments(local.assignments ?? {});
-          }
-        }
+      } catch (e) {
+        if (active) setLoadError(e instanceof Error ? e.message : "Unable to load seating.");
       } finally {
         if (active) setLoading(false);
       }
@@ -237,7 +230,7 @@ export default function SeatingTab({
     return () => {
       active = false;
     };
-  }, [password]);
+  }, []);
 
   // ---- Persistence ----
   // In demo mode we snapshot the whole layout to localStorage; with a DB we
@@ -258,25 +251,26 @@ export default function SeatingTab({
 
   const post = useCallback(
     async (body: Record<string, unknown>) => {
+      if (!canEdit) return;
       if (demoRef.current) return;
       try {
-        await fetch("/api/admin/seating", {
+        await adminFetch("/api/admin/seating", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-admin-password": password,
           },
           body: JSON.stringify(body),
         });
-      } catch {
-        /* best-effort; local state already updated */
+      } catch (e) {
+        setLoadError(e instanceof Error ? e.message : "Unable to save seating.");
       }
     },
-    [password]
+    [canEdit]
   );
 
   const saveTable = useCallback(
     (t: PersistedTable) => {
+      if (!canEdit) return;
       if (demoRef.current) {
         setTables((prev) => {
           const next = prev.some((x) => x.id === t.id)
@@ -289,11 +283,12 @@ export default function SeatingTab({
         post({ action: "upsertTable", table: t });
       }
     },
-    [assignments, post, saveLocalSnapshot]
+    [assignments, post, saveLocalSnapshot, canEdit]
   );
 
   const assign = useCallback(
     (guestId: string, tableId: string) => {
+      if (!canEdit) return;
       setAssignments((prev) => {
         const next = { ...prev, [guestId]: tableId };
         if (demoRef.current) saveLocalSnapshot(tables, next);
@@ -301,11 +296,12 @@ export default function SeatingTab({
       });
       post({ action: "assign", guest_id: guestId, table_id: tableId });
     },
-    [tables, post, saveLocalSnapshot]
+    [tables, post, saveLocalSnapshot, canEdit]
   );
 
   const unassign = useCallback(
     (guestId: string) => {
+      if (!canEdit) return;
       setAssignments((prev) => {
         const next = { ...prev };
         delete next[guestId];
@@ -314,10 +310,11 @@ export default function SeatingTab({
       });
       post({ action: "unassign", guest_id: guestId });
     },
-    [tables, post, saveLocalSnapshot]
+    [tables, post, saveLocalSnapshot, canEdit]
   );
 
   const addTable = useCallback(() => {
+      if (!canEdit) return;
     const n = tables.filter((t) => t.sort_order !== -1).length;
     const t: PersistedTable = {
       id: crypto.randomUUID(),
@@ -334,10 +331,11 @@ export default function SeatingTab({
       return next;
     });
     if (!demoRef.current) post({ action: "upsertTable", table: t });
-  }, [tables, assignments, post, saveLocalSnapshot]);
+  }, [tables, assignments, post, saveLocalSnapshot, canEdit]);
 
   const renameTable = useCallback(
     (id: string, name: string) => {
+      if (!canEdit) return;
       const t = tables.find((x) => x.id === id);
       if (!t) return;
       const updated = { ...t, name };
@@ -348,11 +346,12 @@ export default function SeatingTab({
       });
       if (!demoRef.current) post({ action: "upsertTable", table: updated });
     },
-    [tables, assignments, post, saveLocalSnapshot]
+    [tables, assignments, post, saveLocalSnapshot, canEdit]
   );
 
   const deleteTable = useCallback(
     (id: string) => {
+      if (!canEdit) return;
       setTables((prevTables) => {
         const nextTables = prevTables.filter((x) => x.id !== id);
         setAssignments((prevA) => {
@@ -367,12 +366,13 @@ export default function SeatingTab({
       });
       if (!demoRef.current) post({ action: "deleteTable", id });
     },
-    [post, saveLocalSnapshot]
+    [post, saveLocalSnapshot, canEdit]
   );
 
   // ---- Table repositioning via a pointer-drag on the move handle ----
   const startMove = useCallback(
     (e: React.PointerEvent, tableId: string) => {
+      if (!canEdit) return;
       e.preventDefault();
       e.stopPropagation();
       const canvas = canvasRef.current;
@@ -401,7 +401,7 @@ export default function SeatingTab({
       window.addEventListener("pointermove", onMove);
       window.addEventListener("pointerup", onUp);
     },
-    [saveTable]
+    [saveTable, canEdit]
   );
 
   // ---- Derived: who sits where, who's still in the pool ----
@@ -461,11 +461,13 @@ export default function SeatingTab({
   );
 
   const onDragStart = (e: DragStartEvent) => {
+      if (!canEdit) return;
     setActiveId(String(e.active.id));
     setSelectedGuest(null);
   };
 
   const onDragEnd = (e: DragEndEvent) => {
+      if (!canEdit) return;
     setActiveId(null);
     const guestId = String(e.active.id);
     const over = e.over?.id ? String(e.over.id) : null;
@@ -479,6 +481,7 @@ export default function SeatingTab({
 
   // Tap-to-assign fallback (great on touch): pick a guest, then tap a table.
   const onTableTap = (tableId: string) => {
+      if (!canEdit) return;
     if (selectedGuest) {
       assign(selectedGuest, tableId);
       setSelectedGuest(null);
@@ -487,6 +490,7 @@ export default function SeatingTab({
 
   // ---- Auto-seat first pass ----
   const autoSeat = useCallback(() => {
+      if (!canEdit) return;
     // Seat everyone currently in the pool (accepted + maybe, per the filter),
     // keeping households together and grouping by side. Fills existing empty
     // seats first, then adds tables as needed. Never moves already-seated guests.
@@ -584,6 +588,7 @@ export default function SeatingTab({
       }
     }
   }, [
+    canEdit,
     rosterGroups,
     unseatedCount,
     tables,
@@ -636,7 +641,7 @@ export default function SeatingTab({
   // Seed a head table once if the layout doesn't have one yet (fresh project or
   // demo mode). Runs after the initial load settles.
   useEffect(() => {
-    if (loading) return;
+    if (loading || loadError || !canEdit) return;
     if (tables.some((t) => t.sort_order === -1)) return;
     const head: PersistedTable = {
       id: crypto.randomUUID(),
@@ -671,6 +676,7 @@ export default function SeatingTab({
     };
   }, [fullscreen]);
 
+  if (loadError) return <p role="alert">{loadError}</p>;
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -753,7 +759,7 @@ export default function SeatingTab({
 
         {roundTables.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <button onClick={addTable} className="btn-primary flex items-center gap-2 !text-sm">
+            <button disabled={!canEdit} hidden={!canEdit} onClick={addTable} className="btn-primary flex items-center gap-2 !text-sm">
               <Plus className="h-4 w-4" />
               Add your first table
             </button>
@@ -846,14 +852,14 @@ export default function SeatingTab({
 
   const actionButtons = (
     <div className="flex flex-wrap items-center gap-2">
-      <button onClick={addTable} className="btn-outline flex items-center gap-2 !py-2 !text-sm">
+      <button disabled={!canEdit} hidden={!canEdit} onClick={addTable} className="btn-outline flex items-center gap-2 !py-2 !text-sm">
         <Plus className="h-4 w-4" />
         <span className="hidden sm:inline">Add table</span>
       </button>
       <button
-        onClick={autoSeat}
+        hidden={!canEdit} onClick={autoSeat}
         className="btn-primary flex items-center gap-2 !py-2 !text-sm"
-        disabled={unseatedCount === 0}
+        disabled={!canEdit || unseatedCount === 0}
         title="Seat everyone in the pool, keeping families together"
       >
         <Sparkles className="h-4 w-4" />
@@ -1109,7 +1115,9 @@ function GuestChip({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const { canEdit } = useAdmin();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    disabled: !canEdit,
     id: view.id,
   });
   return (
@@ -1117,7 +1125,7 @@ function GuestChip({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      onClick={onSelect}
+      disabled={!canEdit} onClick={onSelect}
       className={`touch-none ${isDragging ? "opacity-30" : ""} ${
         selected ? "ring-2 ring-sage ring-offset-1" : ""
       } rounded-full`}
@@ -1173,6 +1181,7 @@ function TableNode({
   onUnassign: (guestId: string) => void;
   hasSelection: boolean;
 }) {
+  const { canEdit } = useAdmin();
   const { setNodeRef, isOver } = useDroppable({ id: `table:${table.id}` });
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(table.name);
@@ -1199,7 +1208,7 @@ function TableNode({
         {/* Header: move handle · name · seats · delete */}
         <div className="flex items-center gap-1">
           <button
-            onPointerDown={onMoveStart}
+            disabled={!canEdit} hidden={!canEdit} onPointerDown={onMoveStart}
             className="cursor-grab touch-none rounded p-0.5 text-warm-gray hover:bg-ivory active:cursor-grabbing"
             title="Drag to move table"
           >
@@ -1224,7 +1233,7 @@ function TableNode({
             <button
               onClick={() => {
                 setDraft(table.name);
-                setEditing(true);
+                if (canEdit) setEditing(true);
               }}
               className="group flex min-w-0 flex-1 items-center gap-1 text-left"
             >
@@ -1246,7 +1255,7 @@ function TableNode({
             {guests.length}/{table.capacity}
           </span>
           <button
-            onClick={onDelete}
+            disabled={!canEdit} hidden={!canEdit} onClick={onDelete}
             className="shrink-0 rounded p-0.5 text-warm-gray hover:bg-red-50 hover:text-red-500"
             title="Delete table"
           >
@@ -1280,7 +1289,7 @@ function TableNode({
                     onUnassign(v.id);
                   }}
                   className="shrink-0 rounded text-warm-gray hover:text-red-500"
-                  title="Remove from table"
+                  disabled={!canEdit} hidden={!canEdit} title="Remove from table"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -1312,6 +1321,7 @@ function HeadTableNode({
   onUnassign: (guestId: string) => void;
   hasSelection: boolean;
 }) {
+  const { canEdit } = useAdmin();
   const { setNodeRef, isOver } = useDroppable({ id: `table:${table.id}` });
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(table.name);
@@ -1349,7 +1359,7 @@ function HeadTableNode({
           <button
             onClick={() => {
               setDraft(table.name);
-              setEditing(true);
+              if (canEdit) setEditing(true);
             }}
             className="group flex items-center gap-1"
           >
